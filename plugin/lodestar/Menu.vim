@@ -2,17 +2,18 @@ if exists('g:loaded_LodestarMenu')
     finish
 endif | let g:loaded_LodestarMenu = 1
 
-let s:ls_menu = {}
+runtime! plugin/lodestar/Node.vim
+let s:ls_menu = g:LodestarNode.New()
 let g:LodestarMenu = s:ls_menu
 
 " FUNCTION: Constructor {{{1
 function! s:ls_menu.New()
     let ls_menu = copy(self)
-    let ls_menu.links = {}
     let ls_menu.upper_bound = 0
 
     call ls_menu.Init()
     call ls_menu.Unfold()
+
     call ls_menu.DrawHeader()
     call ls_menu.DrawLinks()
 
@@ -22,7 +23,7 @@ endfunction
 " FUNCTION: Initializer {{{1
 " Set up window/buffer options.
 function! s:ls_menu.Init()
-    au BufEnter LodestarMenu :echo 'test'
+    " au BufEnter LodestarMenu :call lodestar#key_map()
 
     30vne LodestarMenu
     setlocal cursorline
@@ -31,14 +32,15 @@ function! s:ls_menu.Init()
 endfunction
 
 " FUNCTION: Unfold {{{1
-" Returns all links of menu
+" Returns all links of node
 function! s:ls_menu.Unfold()
     let dirs = g:lodestar#lodes_path . '/*'
-    echo dirs
     for path in glob(dirs, 0, 1)
         if isdirectory(path)
             let tmp = g:LodestarLode.New(path)
-            let self.links[tmp.title] = tmp
+            if !empty(tmp.title)
+                let self.links[tmp.title] = tmp
+            endif
         endif
     endfor
 endfunction

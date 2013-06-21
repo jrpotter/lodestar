@@ -4,14 +4,15 @@ if exists('g:loaded_LodestarLode')
     finish
 endif | let g:loaded_LodestarLode = 1
 
-let s:ls_lode = {}
+runtime! plugin/lodestar/Node.vim
+let s:ls_lode = g:LodestarNode.New()
 let g:LodestarLode = s:ls_lode
 
 " FUNCTION: Constructor {{{1
 function! s:ls_lode.New(path)
     let lode = copy(self)
-    
     let lode.path = a:path
+
     call lode.Parse()
 
     return lode
@@ -26,9 +27,26 @@ python << endpython
 path = vim.eval('self.path . g:lodestar#sep')
 manifest_path = path + vim.eval('g:lodestar#manifest')
 
-with open(manifest_path, 'r') as manifest:
-    struct = json.load(manifest, object_hook = uni_asc)
-    vim.command("let self.title = '{}'".format(struct['Title']))
+try:
+    with open(manifest_path, 'r') as manifest:
+        struct = json.load(manifest, object_hook = uni_asc)
+        vim.command("let self.title = '{}'".format(struct['Title']))
+
+        # Pairs up names to paths for unfolding later on
+        for link in struct['Links']:
+            for name, addr in link.iteritems():
+                vim.command("let self.names['{}'] = '{}'".format(addr, name))
+#Opening manifest
+except IOError:
+    print("{} does not exist!".format(manifest_path))
+
+#struct accessing
+except KeyError:
+    print("{} is incomplete!".format(manifest_path))
+
+#json loading
+except ValueError:
+    print("{} is improperly formatted!".format(manifest_path))
 
 endpython
 endfunction
