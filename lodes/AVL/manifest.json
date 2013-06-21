@@ -1,4 +1,7 @@
 {
-
-
+    "Title"    : "AVL",
+    "Category" : "Tree",
+    "Links"    : [
+        { "Python" : "./avl.py" }
+    ]
 }
