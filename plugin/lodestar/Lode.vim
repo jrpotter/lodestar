@@ -36,16 +36,12 @@ try:
         for link in struct['Links']:
             for name, addr in link.iteritems():
                 vim.command("let self.names['{}'] = '{}'".format(addr, name))
-#Opening manifest
-except IOError:
+
+except IOError: #Opening manifest
     print("{} does not exist!".format(manifest_path))
-
-#struct accessing
-except KeyError:
+except KeyError: #struct accessing
     print("{} is incomplete!".format(manifest_path))
-
-#json loading
-except ValueError:
+except ValueError: #json loading
     print("{} is improperly formatted!".format(manifest_path))
 
 endpython

@@ -41,4 +41,5 @@ noremap <SID>Main :call <SID>Main()<CR>
 " Main
 function! s:Main()
     let s:lode_menu = g:LodestarMenu.New()
+    au BufEnter LodestarMenu :call s:lode_menu.KeyMap()
 endfunction
