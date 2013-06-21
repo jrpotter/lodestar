@@ -1,2 +1,3 @@
 let g:lodestar#sep = '/'
-let g:lodestar#home = '~/.vim'
+let g:lodestar#lodes_path = '~/.vim/lodes'
+let g:lodestar#manifest = 'manifest.json'
