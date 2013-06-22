@@ -1,6 +1,5 @@
-" The node is the base class for objects
-" present in the main menu that may or may
-" not be unfoldable. 
+" The node is the base class for objects present in 
+" the main menu that may or may not be unfoldable. 
 "
 " Maintainer: Joshua Potter
 " Contact: jrpotter@live.unc.edu
@@ -18,6 +17,7 @@ function! s:ls_node.New()
     " Naming 
     let node.path = ''
     let node.title = ''
+    let node.names = {}
 
     " Organizing subnodes
     let node.links = []
@@ -33,16 +33,17 @@ endfunction
 
 " FUNCTION: _Populate(names) {{{1
 " Private method to get files of a directory
-function! s:ls_node._Populate(names)
+function! s:ls_node._Populate()
     for path in glob(self.path . '/*', 0, 1)
         let tmp = g:LodestarNode.New()
         let tmp.path = path
 
         " Set up user defined title if possible
-        if has_key(a:names, path)
-            let tmp.title = get(a:names, path)
+        if has_key(self.names, path)
+            let tmp.title = get(self.names, path)
         else
             let piece = strridx(path, '/')
+            if piece < 0 | let piece = 0 | endif
             let tmp.title = strpart(path, piece+1)
         endif
 
@@ -53,12 +54,12 @@ endfunction
 " FUNCTION: Unfold {{{1
 " Returns all links- if not unfolded previously 
 " (or refreshed) will populate menu first
-function! s:ls_node.Unfold(names, ...)
+function! s:ls_node.Unfold(...)
     if !self.opened || a:0 " Refresh
         let self.opened = 1
 
         if isdirectory(self.path)
-            call self._Populate(a:names)
+            call self._Populate()
             call lodestar#quicksort(self.links)
         endif
     endif
