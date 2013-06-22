@@ -1,6 +1,5 @@
 let lodestar#sep = '/'
-let lodestar#lodes_path = '~/.vim/lodes'
-let lodestar#manifest = 'manifest.json'
+let lodestar#lodes_path = '/home/jrpotter/.vim/lodes'
 
 " FUNCTION: filter(pattern, dict) {{{1
 " Takes in a dictionary and returns all key value

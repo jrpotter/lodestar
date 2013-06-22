@@ -29,11 +29,10 @@ endfunction
 function! s:ls_lode.ParseManifest()
 python << endpython
 
-path = vim.eval('self.path . g:lodestar#sep')
-manifest_path = path + vim.eval('g:lodestar#manifest')
+path = vim.eval('self.path') + '/manifest.json'
 
 try:
-    with open(manifest_path, 'r') as manifest:
+    with open(path, 'r') as manifest:
         struct = json.load(manifest, object_hook = uni_asc)
         vim.command("let self.title = '{}'".format(struct['Title']))
 
@@ -43,11 +42,11 @@ try:
                 vim.command("let self.names['{}'] = '{}'".format(addr, name))
 
 except IOError: #Opening manifest
-    print("{} does not exist!".format(manifest_path))
+    print("{} does not exist!".format(path))
 except KeyError: #struct accessing
-    print("{} is incomplete!".format(manifest_path))
+    print("{} is incomplete!".format(path))
 except ValueError: #json loading
-    print("{} is improperly formatted!".format(manifest_path))
+    print("{} is improperly formatted!".format(path))
 
 endpython
 endfunction

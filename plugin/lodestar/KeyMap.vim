@@ -37,11 +37,11 @@ endfunction
 " menu currently in
 function! s:_MapInputKey(key, menu)
     if a:key == 'k'
-        return s:_MoveCursorUp(menu)
+        return s:_MoveCursorUp(a:menu)
     elseif a:key == 'j'
-        return s:_MoveCursorDown(menu)
-    elseif a:key == '\n'
-        return s:_ToggleNodeFold(menu)
+        return s:_MoveCursorDown(a:menu)
+    elseif a:key == "\<CR>"
+        return s:_ToggleNodeFold(a:menu)
     elseif a:key == 'q'
         return s:_Close()
     endif
@@ -51,21 +51,75 @@ endfunction
 " Moves cursor down menu. If current node
 " is unfolded, move selection down a level
 function! s:_MoveCursorUp(menu)
+    let active = a:menu.active
+    let selection = active.selection
+    let highlighted = active.links[selection]
 
+    if selection > 0
+        let active.selection = selection - 1
+    else
+        let a:menu.active = active.parent
+    endif
+
+    if line('.') - 1 > a:menu.topmost
+        call cursor(line('.') - 1, 1)
+    endif
 endfunction
 
 " FUNCTION: _MoveCursorDown(menu) {{{1
 " Moves cursor down menu. If current node
 " is unfolded, move selection down a level
 function! s:_MoveCursorDown(menu)
+    let active = a:menu.active
+    let selection = active.selection
+    let highlighted = active.links[selection]
 
+    " Traverse down a level
+    if highlighted.unfolded
+        let a:menu.active = highlighted
+
+    " Traverse up/through levels
+    else
+        while selection == active.size - 1
+            let active = active.parent
+            let selection = active.selection
+            if active is a:menu | break | endif
+        endwhile    
+
+        " Possibly back to menu
+        if selection < active.size - 1
+            let active.selection = selection + 1
+        endif
+    endif
+
+    call cursor(line('.') + 1, 1)
 endfunction
 
 " FUNCTION: _ToggleNodeFold(menu) {{{1
 " Opens and closes node (hide and show all
 " sublinks)
 function! s:_ToggleNodeFold(menu)
+    let active = a:menu.active
+    let selection = active.selection
+    let highlighted = active.links[selection]
 
+    let line = line('.')
+    if !highlighted.unfolded
+        let highlighted.unfolded = 1
+        call highlighted.Unfold()
+
+        for link in highlighted.links
+            call append(line, ' ' . link.title)
+            let line = line + 1
+        endfor
+    else
+        call cursor(line + 1, 1)
+        let highlighted.unfolded = 0
+        for link in highlighted.links
+            normal! dd
+        endfor
+        call cursor(line, 1)
+    endfor
 endfunction
 
 " FUNCTION: _Close() {{{1

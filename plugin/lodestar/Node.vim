@@ -21,12 +21,13 @@ function! s:ls_node.New()
     let node.names = {}
 
     " Organizing subnodes
+    let node.size = 0
     let node.links = []
     let node.opened = 0
+    let node.selection = 0
 
     " Navigation
-    let node.head = 0
-    let node.tail = 0
+    let node.parent = {}
     let node.unfolded = 0
 
     return node
@@ -38,6 +39,7 @@ function! s:ls_node._Populate()
     for path in glob(self.path . '/*', 0, 1)
         let tmp = g:LodestarNode.New()
         let tmp.path = path
+        let tmp.parent = self
 
         " Set up user defined title if possible
         if has_key(self.names, path)
@@ -49,6 +51,7 @@ function! s:ls_node._Populate()
         endif
 
         call add(self.links, tmp)
+        let self.size = self.size + 1
     endfor
 endfunction
 
@@ -64,8 +67,6 @@ function! s:ls_node.Unfold(...)
             call lodestar#quicksort(self.links)
         endif
     endif
-
-    return self.links
 endfunction
 
 " FUNCTION: Compare(node) {{{1

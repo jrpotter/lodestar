@@ -16,6 +16,11 @@ function! s:ls_menu.New()
     let ls_menu = copy(self)
     let ls_menu.topmost = 0
 
+    " Allows uniform navigation
+    let ls_menu.parent = ls_menu
+    let ls_menu.active = ls_menu
+
+    " Draw window & screen
     call ls_menu.Init()
     call ls_menu.Unfold()
     call ls_menu.DrawHeader()
@@ -54,7 +59,10 @@ function! s:ls_menu.Unfold()
     for path in glob(dirs, 0, 1)
         if isdirectory(path)
             let tmp = g:LodestarLode.New(path)
+            let tmp.parent = self
+
             call add(self.links, tmp)
+            let self.size = self.size + 1
         endif
     endfor
 
