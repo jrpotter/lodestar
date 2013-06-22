@@ -8,6 +8,7 @@ if exists('g:loaded_LodestarLode')
     finish
 endif | let g:loaded_LodestarLode = 1
 
+" Initialize
 runtime! plugin/lodestar/Node.vim
 let s:ls_lode = g:LodestarNode.New()
 let g:LodestarLode = s:ls_lode

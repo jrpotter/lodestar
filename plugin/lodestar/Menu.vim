@@ -7,7 +7,7 @@ if exists('g:loaded_LodestarMenu')
     finish
 endif | let g:loaded_LodestarMenu = 1
 
-runtime! plugin/lodestar/Node.vim
+" Initialize
 let s:ls_menu = g:LodestarNode.New()
 let g:LodestarMenu = s:ls_menu
 
@@ -21,16 +21,30 @@ function! s:ls_menu.New()
     call ls_menu.DrawHeader()
     call ls_menu.DrawLinks()
 
+    " Regulates interaction with menu
+    let g:LodestarBufferMap[ls_menu.title] = ls_menu
+    exe "au BufEnter " . ls_menu.title . " :call g:LodestarKeyMap()"
+    call g:LodestarKeyMap()
+
     return ls_menu
 endfunction
 
 " FUNCTION: Initializer {{{1
 " Set up window/buffer options.
 function! s:ls_menu.Init()
-    30vne LodestarMenu
+    " Unique name
+    let self.title = 'LodestarMenu_' . g:LodestarBufferCount
+    let g:LodestarBufferCount = g:LodestarBufferCount + 1
+
+    " Aesthetics
+    exe "30vne " . self.title
     setlocal cursorline
     setlocal winfixwidth
     hi CursorLine term=bold ctermfg=Cyan
+
+    " No saving file
+    setlocal noswapfile
+    setlocal buftype=nofile
 endfunction
 
 " FUNCTION: Unfold {{{1

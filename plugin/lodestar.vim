@@ -1,6 +1,13 @@
+" A quick reference plugin for computer science related
+" topics such as data structures, algorithms, etc.
+"
+" Maintainer: Joshua Potter
+" Contact: jrpotter@live.unc.edu
 if exists("g:loaded_Lodestar")
     finish
 endif | let g:loaded_Lodestar = 1
+
+runtime! plugin/lodestar/__Init__.vim
 
 " Python 2.7+ must be compiled into vim, as python's json 
 " module in particular is used.
@@ -40,5 +47,5 @@ noremap <SID>Main :call <SID>Main()<CR>
 
 " Main
 function! s:Main()
-    let s:lode_menu = g:LodestarMenu.New()
+    call g:LodestarMenu.New()
 endfunction

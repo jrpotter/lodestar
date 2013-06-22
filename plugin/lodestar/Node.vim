@@ -7,6 +7,7 @@ if exists('g:loaded_LodestarNode')
     finish
 endif | let g:loaded_LodestarNode = 1
 
+" Initialize
 let s:ls_node = {}
 let g:LodestarNode = s:ls_node
 
