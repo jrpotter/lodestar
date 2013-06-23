@@ -1,5 +1,5 @@
 " The node is the base class for objects present in 
-" the main menu that may or may not be unfoldable. 
+" the main menu that may or may not be opened. 
 "
 " Maintainer: Joshua Potter
 " Contact: jrpotter@live.unc.edu
@@ -11,8 +11,8 @@ endif | let g:loaded_LodestarNode = 1
 let s:ls_node = {}
 let g:LodestarNode = s:ls_node
 
-" FUNCTION: New() {{{1
-function! s:ls_node.New()
+" FUNCTION: New(...) {{{1
+function! s:ls_node.New(...)
     let node = copy(self)
 
     " Naming 
@@ -20,55 +20,37 @@ function! s:ls_node.New()
     let node.title = ''
     let node.names = {}
 
-    " Organizing subnodes
-    let node.size = 0
+    " Positioning relative to other nodes
     let node.links = []
-    let node.opened = 0
-    let node.selection = 0
-    let node.depth = 0
+    let node.parent = a:0 ? a:1 : {}
 
-    " Navigation
-    let node.parent = {}
+    " Miscellaneous
+    let node.pos = 0
+    let node.depth = 0
+    let node.opened = 0
     let node.unfolded = 0
 
     return node
 endfunction
 
-" FUNCTION: _Populate(names) {{{1
-" Private method to get files of a directory
-function! s:ls_node._Populate()
-    for path in glob(self.path . '/*', 0, 1)
-        let tmp = g:LodestarNode.New()
-        let tmp.path = path
-        let tmp.parent = self
-        let tmp.depth = self.depth + 1
-
-        " Set up user defined title if possible
-        if has_key(self.names, path)
-            let tmp.title = get(self.names, path)
-        else
-            let piece = strridx(path, '/')
-            if piece < 0 | let piece = 0 | endif
-            let tmp.title = strpart(path, piece+1)
-        endif
-
-        call add(self.links, tmp)
-        let self.size = self.size + 1
-    endfor
+" FUNCTION: Marker() {{{1
+" Tells how node should be prepended in menu.
+function! s:ls_node.Marker()
+    let cap = repeat('|', self.depth)
+    let marker = self.unfolded ? '-' : '+'
+    return cap . marker
 endfunction
 
-" FUNCTION: Unfold {{{1
-" Returns all links- if not unfolded previously 
-" (or refreshed) will populate menu first
-function! s:ls_node.Unfold(...)
-    if !self.opened || a:0 " Refresh
-        let self.opened = 1
+" FUNCTION: Size() {{{1
+" Convenience function for syntactically-pleasing code
+function! s:ls_node.Size()
+    return len(self.links)
+endfunction
 
-        if isdirectory(self.path)
-            call self._Populate()
-            call lodestar#quicksort(self.links)
-        endif
-    endif
+" FUNCTION: Current() {{{1
+" Convenience function for syntactically-pleasing code
+function! s:ls_node.Current()
+    return self.links[self.pos]
 endfunction
 
 " FUNCTION: Compare(node) {{{1
@@ -82,3 +64,44 @@ function! s:ls_node.Compare(node)
         return 1
     endif
 endfunction
+
+" FUNCTION: Coverage() {{{1
+" Tells how many lines the current node
+" is covering if unfolded
+function! s:ls_node.Coverage()
+    let lines = 0
+    for link in self.links
+        let tmp = link.unfolded ? link.Coverage() : 1
+        let lines = lines + tmp
+    endfor 
+    return lines
+endfunction
+
+" FUNCTION: _PopulateLinks(names) {{{1
+" Private method to get files of a directory
+function! s:ls_node._PopulateLinks()
+    for path in glob(self.path . '/*', 0, 1)
+        let tmp = g:LodestarNode.New(self)
+
+        let tmp.path = path
+        let tmp.depth = self.depth + 1
+        let tmp.title = get(self.names, path, lodestar#cut(path))
+
+        call add(self.links, tmp)
+    endfor
+endfunction
+
+" FUNCTION: Unfold {{{1
+" Returns all links- if not unfolded previously 
+" (or refreshed) will populate menu first
+function! s:ls_node.Unfold(...)
+    if !self.opened || a:0 " Refresh
+        let self.opened = 1
+
+        if isdirectory(self.path)
+            call self._PopulateLinks()
+            call lodestar#quicksort(self.links)
+        endif
+    endif
+endfunction
+

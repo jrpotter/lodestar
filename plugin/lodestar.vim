@@ -7,12 +7,10 @@ if exists("g:loaded_Lodestar")
     finish
 endif | let g:loaded_Lodestar = 1
 
-runtime! plugin/lodestar/__Init__.vim
-
 " Python 2.7+ must be compiled into vim, as python's json 
 " module in particular is used.
 if !has("python")
-    echo "Lodestar makes heavy use of python. Please compile with +python."
+    echo "Please compile with +python."
     finish
 endif
 
@@ -45,7 +43,18 @@ endif
 noremap <unique> <script> <Plug>LodestarMain <SID>Main
 noremap <SID>Main :call <SID>Main()<CR>
 
-" Main
+" FUNCTION: Main() {{{1
+" Starting point of lodestar plugin
 function! s:Main()
-    call g:LodestarMenu.New()
+    " Unique Buffer Name
+    let title = 'LodestarMenu_' . g:LodestarBufferCount
+    let g:LodestarBufferCount = g:LodestarBufferCount + 1
+
+    " Build & map menu
+    let menu = g:LodestarMenu.New(title)
+    let g:LodestarBufferMap[title] = menu
+    exe "au BufEnter " . title . " :call g:LodestarKeyMap()"
+
+    " Begin key control
+    call g:LodestarKeyMap()
 endfunction

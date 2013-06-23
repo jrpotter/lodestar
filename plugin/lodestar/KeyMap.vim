@@ -6,8 +6,12 @@ if exists('g:loaded_LodestarKeyMap')
     finish
 endif | let g:loaded_LodestarKeyMap = 1
 
+" VARIABLE: active {{{1
+" Used to avoid tedious passing of values
+let s:active = {}
+
 " VARIABLE: LodestarBufferMap {{{1
-" Maps buffer names to actual menu for
+" Maps buffer names to LodestarMenu for
 " proper traversal
 let g:LodestarBufferMap = {}
 
@@ -21,113 +25,90 @@ let g:LodestarBufferCount = 0
 function! g:LodestarKeyMap()
     let invalid = 0
     let name = bufname('%')
-    let menu = g:LodestarBufferMap[name]
+    let s:active = g:LodestarBufferMap[name]
 
     while !invalid
         try
             redraw!
             let key = nr2char(getchar())
-            let invalid = s:_MapInputKey(key, menu)
+            let invalid = s:_MapInputKey(key)
         catch | endtry
     endwhile
 endfunction
 
-" FUNCTION: _MapInputKey(key, menu) {{{1
+" FUNCTION: _MapInputKey(key) {{{1
 " Controls how input works depending on the
 " menu currently in
-function! s:_MapInputKey(key, menu)
+function! s:_MapInputKey(key)
     if a:key == 'k'
-        return s:_MoveCursorUp(a:menu)
+        return s:_MoveCursorUp()
     elseif a:key == 'j'
-        return s:_MoveCursorDown(a:menu)
+        return s:_MoveCursorDown()
     elseif a:key == "\<CR>"
-        return s:_ToggleNodeFold(a:menu)
+        return s:_ToggleFold()
     elseif a:key == 'q'
         return s:_Close()
     endif
 endfunction
 
-" FUNCTION: _MoveCursorUp(menu) {{{1
-" Moves cursor down menu. If current node
-" is unfolded, move selection down a level
-function! s:_MoveCursorUp(menu)
-    let active = a:menu.active
-    let selection = active.selection
+" FUNCTION: _MoveCursorUp() {{{1
+" Three possibilites are available when moving up
+" a menu. First, and most basic, is a simple traversal
+" up a node. Second is hitting the head of a menu. In
+" this case simply move up to the parent and continue.
+" Lastly hitting a node that is unfolded means needing to
+" select the deeper nodes last inner node
+function! s:_MoveCursorUp()
+    " Traverse
+    if s:active.pos > 0
+        let s:active.pos = s:active.pos - 1
+        let current = s:active.Current()
 
-    " Traverse up
-    if selection > 0
-        let active.selection = selection - 1
-        let highlighted = active.links[selection-1]
+        while current.unfolded
+            let current = current.links[-1]
+            let s:active = current.parent
+        endwhile
+        call cursor(line('.') - 1, 1)
 
-        " Traversing down levels
-        if highlighted.unfolded
-            let highlighted = highlighted.links[-1]
-            let a:menu.active = highlighted
-        endif 
-    else
-        let a:menu.active = active.parent
-    endif
-
-    if line('.') - 1 > a:menu.topmost
+    " Not the main menu
+    elseif s:active !is s:active.parent
+        let s:active = s:active.parent
         call cursor(line('.') - 1, 1)
     endif
 endfunction
 
-" FUNCTION: _MoveCursorDown(menu) {{{1
-" Moves cursor down menu. If current node
-" is unfolded, move selection down a level
-function! s:_MoveCursorDown(menu)
-    let active = a:menu.active
-    let selection = active.selection
-    let highlighted = active.links[selection]
+" FUNCTION: _MoveCursorDown() {{{1
+" Parallels that of _MoveCursorUp()
+function! s:_MoveCursorDown()
+    "Traverse down level
+    if s:active.Current().unfolded
+        let s:active = s:active.Current()
 
-    " Traverse down a level
-    if highlighted.unfolded
-        let a:menu.active = highlighted
-
-    " Traverse up/through levels
+    " Traverse down menu
     else
-        while selection == active.size - 1
-            let active = active.parent
-            let selection = active.selection
-            if active is a:menu | break | endif
-        endwhile    
+        while s:active.pos == s:active.Size() - 1
+            if s:active is s:active.parent
+                break
+            endif
+            let s:active = s:active.parent
+        endwhile
 
-        " Possibly back to menu
-        if selection < active.size - 1
-            let active.selection = selection + 1
+        if s:active.pos < s:active.Size() - 1
+            let s:active.pos = s:active.pos + 1
         endif
     endif
 
     call cursor(line('.') + 1, 1)
 endfunction
 
-" FUNCTION: _ToggleNodeFold(menu) {{{1
+" FUNCTION: _ToggleFold() {{{1
 " Opens and closes node (hide and show all
 " sublinks)
-function! s:_ToggleNodeFold(menu)
-    let active = a:menu.active
-    let selection = active.selection
-    let highlighted = active.links[selection]
-
-    let line = line('.')
-    if !highlighted.unfolded
-        let highlighted.unfolded = 1
-        call highlighted.Unfold()
-
-        for link in highlighted.links
-            let level = repeat(' ', link.depth)
-            call append(line, level . link.title)
-            let line = line + 1
-        endfor
-    else
-        call cursor(line + 1, 1)
-        let highlighted.unfolded = 0
-        for link in highlighted.links
-            normal! dd
-        endfor
-        call cursor(line, 1)
-    endfor
+function! s:_ToggleFold()
+    " Should node have a drawlinks method?
+    " Is this not encapsulating well? ie is node
+    " related to drawing? I think it could be argued either way.
+    " In any case its 3am and I'm tired
 endfunction
 
 " FUNCTION: _Close() {{{1

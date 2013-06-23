@@ -13,11 +13,15 @@ runtime! plugin/lodestar/Node.vim
 let s:ls_lode = g:LodestarNode.New()
 let g:LodestarLode = s:ls_lode
 
-" FUNCTION: New(path) {{{1
-function! s:ls_lode.New(path)
+" FUNCTION: New(path, parent) {{{1
+function! s:ls_lode.New(path, parent)
     let lode = copy(self)
 
+    let lode.category = ''
     let lode.path = a:path
+    let lode.parent = a:parent
+    let lode.depth = a:parent.depth + 1
+
     call lode.ParseManifest()
 
     return lode
@@ -33,18 +37,22 @@ path = vim.eval('self.path') + '/manifest.json'
 
 try:
     with open(path, 'r') as manifest:
-        struct = json.load(manifest, object_hook = uni_asc)
-        vim.command("let self.title = '{}'".format(struct['Title']))
+        man = json.load(manifest, object_hook = uni_asc)
 
-        # Pairs up names to paths for unfolding later on
-        for link in struct['Links']:
+        # One to one pairing of manifest members to self members
+        vim.command("let self.title = '{}'".format(man['Title']))
+        vim.command("let self.category = '{}'".format(man['Category']))
+        vim.command("let self.names['{}'] = '{}'".format(path, man['Title']))
+
+        # Pairs up names to paths
+        for link in man['Links']:
             for name, addr in link.iteritems():
                 vim.command("let self.names['{}'] = '{}'".format(addr, name))
 
-except IOError: #Opening manifest
-    print("{} does not exist!".format(path))
 except KeyError: #struct accessing
     print("{} is incomplete!".format(path))
+except IOError: #Opening manifest
+    print("{} does not exist!".format(path))
 except ValueError: #json loading
     print("{} is improperly formatted!".format(path))
 
