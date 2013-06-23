@@ -37,8 +37,18 @@ endfunction
 " Tells how node should be prepended in menu.
 function! s:ls_node.Marker()
     let cap = repeat('|', self.depth)
-    let marker = self.unfolded ? '-' : '+'
+    if isdirectory(self.path)
+        let marker = self.unfolded ? '-' : '+'
+    else
+        let marker = '~'
+    endif
     return cap . marker
+endfunction
+
+" FUNCTION: Title() {{{1
+" Convenience function for syntactically-pleasing code
+function! s:ls_node.Title()
+    return self.Marker() . self.title
 endfunction
 
 " FUNCTION: Size() {{{1
@@ -47,9 +57,9 @@ function! s:ls_node.Size()
     return len(self.links)
 endfunction
 
-" FUNCTION: Current() {{{1
+" FUNCTION: Selected() {{{1
 " Convenience function for syntactically-pleasing code
-function! s:ls_node.Current()
+function! s:ls_node.Selected()
     return self.links[self.pos]
 endfunction
 
@@ -103,5 +113,7 @@ function! s:ls_node.Unfold(...)
             call lodestar#quicksort(self.links)
         endif
     endif
+
+    let self.unfolded = !self.unfolded
 endfunction
 

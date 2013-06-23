@@ -104,17 +104,16 @@ function! s:_ToggleFold(node, ...)
     " Change nodes line
     if !a:0
         let line = line('.')
-        let a:node.unfolded = !a:node.unfolded
-        call setline(line, a:node.Marker() . a:node.title)
+        call a:node.Unfold()
+        call setline(line, a:node.Title())
     else
         let line = a:1
     endif
 
     " Draw all links
     if a:node.unfolded
-        call a:node.Unfold()
         for link in a:node.links
-            call append(line, link.Marker() . link.title)
+            call append(line, link.Title())
             if link.unfolded
                 call s:_ToggleFold(link, line)
                 let line = line + link.Size()

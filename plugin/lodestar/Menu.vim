@@ -76,8 +76,7 @@ endfunction
 function! s:ls_menu.DrawLinks()
     let i = self.topmost
     for link in self.links
-        let cap = link.Marker()
-        call append(i, cap . link.title)
+        call append(i, link.Title())
         let i = i + 1
     endfor
 
