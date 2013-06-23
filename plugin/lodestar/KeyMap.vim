@@ -53,10 +53,17 @@ endfunction
 function! s:_MoveCursorUp(menu)
     let active = a:menu.active
     let selection = active.selection
-    let highlighted = active.links[selection]
 
+    " Traverse up
     if selection > 0
         let active.selection = selection - 1
+        let highlighted = active.links[selection-1]
+
+        " Traversing down levels
+        if highlighted.unfolded
+            let highlighted = highlighted.links[-1]
+            let a:menu.active = highlighted
+        endif 
     else
         let a:menu.active = active.parent
     endif
@@ -109,7 +116,8 @@ function! s:_ToggleNodeFold(menu)
         call highlighted.Unfold()
 
         for link in highlighted.links
-            call append(line, ' ' . link.title)
+            let level = repeat(' ', link.depth)
+            call append(line, level . link.title)
             let line = line + 1
         endfor
     else

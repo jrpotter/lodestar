@@ -25,6 +25,7 @@ function! s:ls_node.New()
     let node.links = []
     let node.opened = 0
     let node.selection = 0
+    let node.depth = 0
 
     " Navigation
     let node.parent = {}
@@ -40,6 +41,7 @@ function! s:ls_node._Populate()
         let tmp = g:LodestarNode.New()
         let tmp.path = path
         let tmp.parent = self
+        let tmp.depth = self.depth + 1
 
         " Set up user defined title if possible
         if has_key(self.names, path)
