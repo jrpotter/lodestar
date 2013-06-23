@@ -45,7 +45,7 @@ function! s:_MapInputKey(key)
     elseif a:key == 'j'
         return s:_MoveCursorDown()
     elseif a:key == "\<CR>"
-        return s:_ToggleFold()
+        return s:_ToggleFold(s:active.Current())
     elseif a:key == 'q'
         return s:_Close()
     endif
@@ -65,8 +65,8 @@ function! s:_MoveCursorUp()
         let current = s:active.Current()
 
         while current.unfolded
+            let s:active = current
             let current = current.links[-1]
-            let s:active = current.parent
         endwhile
         call cursor(line('.') - 1, 1)
 
@@ -83,32 +83,49 @@ function! s:_MoveCursorDown()
     "Traverse down level
     if s:active.Current().unfolded
         let s:active = s:active.Current()
+        call cursor(line('.') + 1, 1)
 
     " Traverse down menu
-    else
+    elseif line('.') < line('$')
         while s:active.pos == s:active.Size() - 1
-            if s:active is s:active.parent
-                break
-            endif
             let s:active = s:active.parent
         endwhile
 
-        if s:active.pos < s:active.Size() - 1
-            let s:active.pos = s:active.pos + 1
-        endif
+        let s:active.pos = s:active.pos + 1
+        call cursor(line('.') + 1, 1)
     endif
-
-    call cursor(line('.') + 1, 1)
 endfunction
 
-" FUNCTION: _ToggleFold() {{{1
+" FUNCTION: _ToggleFold(node, ...) {{{1
 " Opens and closes node (hide and show all
 " sublinks)
-function! s:_ToggleFold()
-    " Should node have a drawlinks method?
-    " Is this not encapsulating well? ie is node
-    " related to drawing? I think it could be argued either way.
-    " In any case its 3am and I'm tired
+function! s:_ToggleFold(node, ...)
+
+    " Change nodes line
+    if !a:0
+        let line = line('.')
+        let a:node.unfolded = !a:node.unfolded
+        call setline(line, a:node.Marker() . a:node.title)
+    else
+        let line = a:1
+    endif
+
+    " Draw all links
+    if a:node.unfolded
+        call a:node.Unfold()
+        for link in a:node.links
+            call append(line, link.Marker() . link.title)
+            if link.unfolded
+                call s:_ToggleFold(link, line)
+                let line = line + link.Size()
+            endif
+            let line = line + 1
+        endfor
+    else
+        let clean = a:node.Coverage()
+        exe line + 1 . "d _ " . clean
+        call cursor(line, 1)
+    endif
 endfunction
 
 " FUNCTION: _Close() {{{1

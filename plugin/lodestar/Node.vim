@@ -66,10 +66,9 @@ function! s:ls_node.Compare(node)
 endfunction
 
 " FUNCTION: Coverage() {{{1
-" Tells how many lines the current node
-" is covering if unfolded
+" Tells how many lines the current node covers
 function! s:ls_node.Coverage()
-    let lines = 0
+    let lines = 1
     for link in self.links
         let tmp = link.unfolded ? link.Coverage() : 1
         let lines = lines + tmp
@@ -84,6 +83,7 @@ function! s:ls_node._PopulateLinks()
         let tmp = g:LodestarNode.New(self)
 
         let tmp.path = path
+        let tmp.names = self.names
         let tmp.depth = self.depth + 1
         let tmp.title = get(self.names, path, lodestar#cut(path))
 

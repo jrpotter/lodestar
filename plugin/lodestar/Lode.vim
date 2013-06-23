@@ -33,10 +33,11 @@ endfunction
 function! s:ls_lode.ParseManifest()
 python << endpython
 
-path = vim.eval('self.path') + '/manifest.json'
+path = vim.eval('self.path')
+man_path = path + '/manifest.json'
 
 try:
-    with open(path, 'r') as manifest:
+    with open(man_path, 'r') as manifest:
         man = json.load(manifest, object_hook = uni_asc)
 
         # One to one pairing of manifest members to self members
