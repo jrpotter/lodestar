@@ -32,11 +32,7 @@ let g:LodestarBufferCount = 0
 function g:LodestarKeyMap()
     let exiting = 0
     let name = bufname('%')
-
-    " Shallow copy to avoid repetitive variable creation
-    let s:active = copy(g:LodestarBufferMap[name])
-    let s:active.size = len(s:active.links)
-    let s:active.current = s:active.links[s:active.pos]
+    let s:active = g:LodestarBufferMap[name]
 
     while !exiting
         try
@@ -51,7 +47,7 @@ endfunction
 " FUNCTION: __MapInputKey(key) {{{1 Calls appropriate function
 " ==============================================================
 function s:__MapInputKey(key)
-    if a:key == 'k'          | return s:__MoveCursorUp()
+    if     a:key == 'k'      | return s:__MoveCursorUp()
     elseif a:key == 'j'      | return s:__MoveCursorDown()
     elseif a:key == "\<CR>"  | return s:__ToggleFold()
     elseif a:key == 'q'      | return s:__CloseWindow()
@@ -75,7 +71,24 @@ endfunction
 "
 " ==============================================================
 function s:__MoveCursorUp() 
-    
+    " Case 3
+    if s:active.pos > 0
+        let s:active.pos = s:active.pos - 1 
+        let current = s:active.Selected()
+
+        " Case 1
+        while current.unfolded
+            let s:active = current
+            let current = current.links[-1]
+        endwhile
+
+        call cursor(line('.') - 1, 1)
+
+    " Case 2
+    elseif !empty(s:active.parent)
+        let s:active = s:active.parent
+        call cursor(line('.') - 1, 1)
+    endif
 endfunction
 
 
@@ -83,20 +96,64 @@ endfunction
 " Has three situations that parallel __MoveCursorUp()
 " ==============================================================
 function s:__MoveCursorDown()
+    " Case 1
+    if s:active.Selected().unfolded
+        let s:active = s:active.Selected()
+        call cursor(line('.') + 1, 1)
 
+    " Case 3
+    elseif line('.') < line('$')
+
+        " Case 1
+        while s:active.pos == len(s:active.links) - 1
+            let s:active = s:active.parent
+        endwhile
+
+        let s:active.pos = s:active.pos + 1
+        call cursor(line('.') + 1, 1)
+    endif
+endfunction
+
+" FUNCTION: __ShowDirectory(node, line) {{{1 Display contents
+" ==============================================================
+function s:__ShowDirectory(node, line)
+    if a:node.unfolded
+        let line = a:line
+        for link in a:node.links
+            call append(line, link.Title())
+            call s:__ShowDirectory(link, line + 1)
+            let line = line + link.Coverage()
+        endfor
+    endif
 endfunction
 
 
 " FUNCTION: __ToggleFold() {{{1 Opens/Closes selected node
 " ==============================================================
 function s:__ToggleFold()
+    let line = line('.')
+    let current = s:active.Selected()
 
+    call current.Toggle()
+    call setline(line, current.Title())
+
+    if isdirectory(current.path)
+        if current.unfolded
+            call s:__ShowDirectory(current, line)
+        else
+            let clean = current.Hidden()
+            exe line + 1 . "d _ " . clean
+            call cursor(line, 1)
+        endif
+    else
+        " Open file
+    endif
 endfunction
 
 
 " FUNCTION: __CloseWindow() {{{1 Exit Menu
 " ==============================================================
 function s:__CloseWindow()
-    exe ":q\<CR>"
+    exe 'q'
     return 1
 endfunction

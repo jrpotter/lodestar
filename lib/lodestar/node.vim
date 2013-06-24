@@ -62,8 +62,8 @@ endfunction
 " FUNCTION: Compare(node) {{{1 For sorting purposes
 " ==============================================================
 function s:node.Compare(node)
-    if self.title < a:node.title | return -1
-    elseif self.title > a:node.title | return 1
+    if self.path < a:node.path | return -1
+    elseif self.path > a:node.path | return 1
     else | return 0 | endif
 endfunction
 
@@ -82,6 +82,18 @@ function s:node.Coverage()
 endfunction
 
 
+" FUNCTION: Hidden() {{{1 Number of lines hidden
+" ==============================================================
+function s:node.Hidden()
+    let total = 0
+    for link in self.links
+        let sub = link.Coverage()
+        let total = total + sub
+    endfor 
+    return total
+endfunction
+
+
 " FUNCTION: PopulateLinks(...) {{{1 Read in files from path
 " May take in another constructor for building of nodes
 " ==============================================================
@@ -91,6 +103,8 @@ function s:node.PopulateLinks(...)
         let sub = factory.New(self, path)
         call add(self.links, sub)
     endfor
+
+    call lodestar#quicksort(self.links)
 endfunction
 
 
@@ -98,12 +112,13 @@ endfunction
 " If not unfolded previously, populates links
 " ==============================================================
 function s:node.Toggle()
-    if !self.opened
-        let self.opened = 1
-        call self.PopulateLinks()
-        call lodestar#quicksort(self.links)
-    endif
+    if isdirectory(self.path)
+        if !self.opened
+            let self.opened = 1
+            call self.PopulateLinks()
+        endif
 
-    let self.unfolded = !self.unfolded
+        let self.unfolded = !self.unfolded
+    endif
 endfunction
 

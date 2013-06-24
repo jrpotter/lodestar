@@ -20,9 +20,7 @@ let g:LodestarMenu = s:menu
 " ==============================================================
 function! s:menu.New(title)
     let menu = deepcopy(self)
-    call append(0, len(menu.links))
 
-    let menu.limit = 0
     let menu.title = a:title
     let menu.path = g:lodestar#lodes_path
 
@@ -36,8 +34,8 @@ function! s:menu.New(title)
 
     " Draw screen
     call menu.PopulateLinks(g:LodestarLode)
-    call menu.DrawHeader()
-    call menu.DrawLinks()
+    let limit = menu.DrawHeader()
+    call menu.DrawLinks(limit)
 
     return menu
 endfunction
@@ -56,18 +54,18 @@ function s:menu.DrawHeader()
         let i = i + 1
     endfor
 
-    let self.limit = i + 1
+    return i + 1
 endfunction
 
 
 " FUNCTION: DrawLinks() {{{1 Write links from header down
 " ==============================================================
-function s:menu.DrawLinks()
-    let i = self.limit
+function s:menu.DrawLinks(limit)
+    let i = a:limit
     for link in self.links
         call append(i, link.Title())
         let i = i + 1
     endfor
 
-    call cursor(self.limit + 1, 1)
+    call cursor(a:limit + 1, 1)
 endfunction
