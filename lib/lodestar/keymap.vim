@@ -41,6 +41,8 @@ function g:LodestarKeyMap()
             let exiting = s:__MapInputKey(key)
         catch | endtry
     endwhile
+
+    let g:LodestarBufferMap[name] = s:active
 endfunction
 
 
@@ -50,6 +52,7 @@ function s:__MapInputKey(key)
     if     a:key == 'k'      | return s:__MoveCursorUp()
     elseif a:key == 'j'      | return s:__MoveCursorDown()
     elseif a:key == "\<CR>"  | return s:__ToggleFold()
+    elseif a:key == 'o'      | return s:__ToggleFold()
     elseif a:key == 'q'      | return s:__CloseWindow()
     endif
 endfunction
@@ -146,8 +149,17 @@ function s:__ToggleFold()
             call cursor(line, 1)
         endif
     else
-        " Open file
+        return s:__OpenFile()
     endif
+endfunction
+
+
+" FUNCTION: __OpenFile() {{{1 Opens file
+" ==============================================================
+function s:__OpenFile()
+    exe "normal! \<C-W>l"
+    exe "edit " . s:active.Selected().path
+    return 1
 endfunction
 
 
