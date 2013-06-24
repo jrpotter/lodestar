@@ -1,64 +1,75 @@
-" Autoload file for library-like functions
-" 
-" Maintainer: Joshua Potter
-" Contact: jrpotter@live.unc.edu
+" ==============================================================
+" File:         lodestar.vim
+" Description:  Collection of lodestar 'library' functions
+" Maintainer:   Joshua Potter <jrpotter@live.unc.edu>
+" License:      Apache License, Version 2.0
+"
+" ==============================================================
 
-" VARIABLE: lodes_path {{{1
-" Path of all references (coined 'lodes')
-let lodestar#lodes_path = '/home/jrpotter/.vim/lodes'
 
-" FUNCTION: cut(path) {{{1
-" Removes last piece of a path
-function! lodestar#cut(path)
-    let piece = strridx(a:path, '/')
-    return strpart(a:path, piece+1)
+" VARIABLE: lodes_path {{{1 Path of references
+" ==============================================================
+let lodestar#lodes_path = '~/.vim/lodes'
+
+
+" FUNCTION: header_guard(name) {{{1 Ensures only single include
+" ==============================================================
+function lodestar#guard(name)
+    if exists(a:name) | return 1 | endif
+    exe "let " . a:name . " = 1"
 endfunction
 
-" FUNCTION: swap(list, fst, snd) {{{1
-" Swaps two items in a list
-function! lodestar#swap(list, fst, snd)
+
+" FUNCTION: cut(path) {{{1 Remove last segment of a path
+" ==============================================================
+function lodestar#cut(path)
+    let piece = strridx(a:path, '/')
+    return strpart(a:path, piece + 1)
+endfunction
+
+
+" FUNCTION: swap(list, fst, snd) {{{1 Swap items in list
+" ==============================================================
+function lodestar#swap(list, fst, snd)
     let tmp = a:list[a:fst]
     let a:list[a:fst] = a:list[a:snd]
     let a:list[a:snd] = tmp
 endfunction
 
-" FUNCTION: _partition(list, left, right) {{{1
-" Subroutine used by quicksort for managing sorting
-" each recursive half. Should not be called by user
-function! lodestar#_partition(list, left, right)
-    let pivot = (a:left + a:right) / 2
-    let pivot_value = a:list[pivot]
 
-    " Set pivot as first element in sublist
-    call lodestar#swap(a:list, a:right, pivot)
+" FUNCTION: __partition(list, left, right) {{{1
+" Private method not to be called by user. Subroutine used for
+" sorting quicksort's recursive halves
+" ==============================================================
+function lodestar#__partition(list, left, right)
+    let less_index = 0
+    let pivot_index = (a:left + a:right) / 2
+    let pivot_value = a:list[pivot_index]
 
-    " Set all smaller values before pivot
-    let less = 0
-    for i in range(a:left, a:right-1)
+    call lodestar#swap(a:list, pivot_index, a:right)
+    for i in range(a:left, a:right - 1)
         if a:list[i].Compare(pivot_value) <= 0
-            call lodestar#swap(a:list, i, less)
-            let less = less + 1
+            call lodestar#swap(a:list, i, less_index)
+            let less_index = less_index + 1
         endif
     endfor
+    call lodestar#swap(a:list, a:right, pivot_index)
 
-    " Return pivot
-    call lodestar#swap(a:list, a:right, less)
-    return less
+    return less_index
 endfunction
 
-" FUNCTION: quicksort(list) {{{1
-" To use, make sure object passed has a Compare method
-" return 0 if equal, -1 if less than, and 1 if greater.
-function! lodestar#quicksort(list, ...)
-    " Extra parameters provided by function itself
-    if a:0 | let left = a:1 | let right = a:2
-    else | let left = 0 | let right = len(a:list) - 1
-    endif
 
-    " If list has more than 1 value
+" FUNCTION: quicksort(list, ...) {{{1 Sorting method
+" Recursive sorting method. Requires object type to have a 
+" Compare method returning 0 if equal, -1 if <, and 1 if >
+" ==============================================================
+function lodestar#quicksort(list, ...)
+    let left = a:0 ? a:1 : 0
+    let right = a:0 ? a:2 : len(a:list) - 1
+
     if left < right
-        let mid = lodestar#_partition(a:list, left, right)
-        call lodestar#quicksort(a:list, left, mid - 1)
-        call lodestar#quicksort(a:list, mid + 1, right)
+        let pivot = lodestar#__partition(a:list, left, right)
+        call lodestar#quicksort(a:list, left, pivot - 1)
+        call lodestar#quicksort(a:list, pivot + 1, right)
     endif
 endfunction
