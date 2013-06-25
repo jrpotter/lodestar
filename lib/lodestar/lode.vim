@@ -25,6 +25,7 @@ function! s:lode.New(parent, path)
     let lode.names = a:parent.names
 
     call lode.ParseManifest()
+    let lode.isdirectory = 1
     let lode.title = lode.Title()
 
     return lode
@@ -39,6 +40,7 @@ python << endpython
 
 path = vim.eval('self.path')
 man_path = abs_path(path) + '/manifest.json'
+ignore_paths = [man_path]
 
 try:
     with open(man_path, 'r') as man_fp:
@@ -49,11 +51,16 @@ try:
         vim.command("let self.category = '{}'".format(man['Category']))
         vim.command("let self.names['{}'] = '{}'".format(path, man['Title']))
 
+        #Ignore files
+        ignore_paths.extend([link for link in man['Ignore']])
+        vim.command("let self.ignore = {}".format(ignore_paths))
+
         # Pair paths to desired names
         for link in man['Links']:
             name, addr = link.popitem()
             addr = abs_path(path, addr)
-            vim.command("let self.names['{}'] = '{}'".format(addr, name))
+            if addr not in ignore_paths:
+                vim.command("let self.names['{}'] = '{}'".format(addr, name))
 
 except IOError:
     print("{} does not exist!".format(path))

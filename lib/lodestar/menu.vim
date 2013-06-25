@@ -21,6 +21,7 @@ let g:LodestarMenu = s:menu
 function! s:menu.New(title)
     let menu = deepcopy(self)
 
+    let menu.isdirectory = 1
     let menu.title = a:title
     let menu.path = g:lodestar#lodes_path
 
@@ -41,10 +42,40 @@ function! s:menu.New(title)
 
     " Draw screen
     call menu.Toggle(g:LodestarLode)
-    let limit = menu.DrawHeader()
-    call menu.DrawLinks(limit)
+    call menu.Categorize()
+    call menu.DrawHeader()
+    call menu.DrawLinks()
 
     return menu
+endfunction
+
+" FUNCTION: Categorize() {{{1 Change links to categories
+" ==============================================================
+function s:menu.Categorize()
+    let categories = {}
+    let links = copy(self.links)
+
+    for link in links    
+        let name = link.category
+        if !empty(name)
+            " Remove link
+            let pos = index(self.links, link)
+            call remove(self.links, pos)
+
+            " Add category
+            if !has_key(categories, name)
+                let categories[name] = g:LodestarCategory.New(link)
+                let categories[name].parent = self
+                call add(self.links, categories[name])
+            endif
+
+            let link.depth = link.depth + 1
+            let link.parent = categories[name]
+            call add(categories[name].links, link)
+        endif
+    endfor
+
+    call lodestar#quicksort(self.links)
 endfunction
 
 
@@ -63,18 +94,18 @@ function s:menu.DrawHeader()
         exe 'syn match LodestarHeader /' . line . '/'
     endfor
 
-    return i + 1
+    let self.limit = i + 1
 endfunction
 
 
-" FUNCTION: DrawLinks(limit) {{{1 Write links from header down
+" FUNCTION: DrawLinks() {{{1 Write links from header down
 " ==============================================================
-function s:menu.DrawLinks(limit)
-    let i = a:limit
+function s:menu.DrawLinks()
+    let i = self.limit
     for link in self.links
         call append(i, link.Display())
         let i = i + 1
     endfor
 
-    call cursor(a:limit + 1, 1)
+    call cursor(self.limit + 1, 1)
 endfunction

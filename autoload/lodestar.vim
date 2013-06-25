@@ -28,6 +28,14 @@ function lodestar#cut(path)
 endfunction
 
 
+" FUNCTION: ext(path) {{{1 Get file extension of path
+" ==============================================================
+function lodestar#ext(path)
+    let piece = strridx(a:path, '.')
+    return strpart(a:path, piece + 1)
+endfunction
+
+
 " FUNCTION: swap(list, fst, snd) {{{1 Swap items in list
 " ==============================================================
 function lodestar#swap(list, fst, snd)

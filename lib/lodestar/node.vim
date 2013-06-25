@@ -22,13 +22,16 @@ function s:node.New(...)
     let node = deepcopy(self)
 
     " Naming/Opening node
+    let node.category = ''
     let node.path = a:0 ? a:2 : ''
     let node.names = a:0 ? a:1.names : {}
     let node.title = node.Title()
+    let node.isdirectory = isdirectory(node.path)
 
     " Position relative to other nodes
     let node.pos = 0
     let node.links = []
+    let node.ignore = []
     let node.parent = a:0 ? a:1 : {}
 
     " Keeps state of node
@@ -51,7 +54,7 @@ endfunction
 " ==============================================================
 function s:node.Display()
     let depth = repeat('|', self.depth)
-    if !isdirectory(self.path) | let type = '~'
+    if !self.isdirectory | let type = '~'
     else | let type = self.unfolded ? '-' : '+' | endif
 
     return depth . type . self.title
@@ -105,8 +108,10 @@ endfunction
 " ==============================================================
 function s:node.__PopulateLinks(factory)
     for path in glob(self.path . '/*', 0, 1)
-        let sub = a:factory.New(self, path)
-        call add(self.links, sub)
+        if index(self.ignore, path) < 0
+            let sub = a:factory.New(self, path)
+            call add(self.links, sub)
+        endif
     endfor
 
     call lodestar#quicksort(self.links)
@@ -119,7 +124,7 @@ endfunction
 " ==============================================================
 function s:node.Toggle(...)
     let factory = a:0 ? a:1 : g:LodestarNode
-    if isdirectory(self.path)
+    if self.isdirectory
         if !self.opened
             let self.opened = 1
             call self.__PopulateLinks(factory)

@@ -13,6 +13,7 @@ if lodestar#guard('g:loaded_Lodestar') | finish | endif
 runtime lib/lodestar/keymap.vim
 runtime lib/lodestar/node.vim
 runtime lib/lodestar/lode.vim
+runtime lib/lodestar/category.vim
 runtime lib/lodestar/menu.vim
 
 

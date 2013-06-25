@@ -102,21 +102,23 @@ endfunction
 " Has three situations that parallel __MoveCursorUp()
 " ==============================================================
 function s:__MoveCursorDown()
-    " Case 1
-    if s:active.Selected().unfolded
-        let s:active = s:active.Selected()
-        call cursor(line('.') + 1, 1)
-
-    " Case 3
-    elseif line('.') < line('$')
-
+    if line('.') < line('$')
         " Case 1
-        while s:active.pos == len(s:active.links) - 1
-            let s:active = s:active.parent
-        endwhile
+        if s:active.Selected().unfolded
+            let s:active = s:active.Selected()
+            call cursor(line('.') + 1, 1)
 
-        let s:active.pos = s:active.pos + 1
-        call cursor(line('.') + 1, 1)
+        " Case 3
+        else
+
+            " Case 1
+            while s:active.pos == len(s:active.links) - 1
+                let s:active = s:active.parent
+            endwhile
+
+            let s:active.pos = s:active.pos + 1
+            call cursor(line('.') + 1, 1)
+        endif
     endif
 endfunction
 
@@ -143,17 +145,32 @@ function s:__ToggleFold()
     call current.Toggle()
     call setline(line, current.Display())
 
-    if isdirectory(current.path)
+    if current.isdirectory
         if current.unfolded
             call s:__ShowDirectory(current, line)
         else
             let clean = current.Hidden()
-            exe line + 1 . "d _ " . clean
-            call cursor(line, 1)
+            if clean > 0
+                exe line + 1 . "d _ " . clean
+                call cursor(line, 1)
+            endif
         endif
     else
         return s:__OpenFile()
     endif
+endfunction
+
+
+" FUNCTION: __InitWindow(path) {{{1 Initialize new window
+" ==============================================================
+function s:__InitWindow(command) 
+    let path = s:active.Selected().path
+
+    exe a:command . " " . path
+    filetype detect
+    setlocal ro
+
+    return 1
 endfunction
 
 
@@ -167,9 +184,8 @@ function s:__OpenFile()
         echo "Unsaved changes to current buffer"
         call getchar()
     else 
-        exe window . "wincmd w"
-        exe "edit " . s:active.Selected().path
-        setlocal ro
+        exe window . 'wincmd w'
+        call s:__InitWindow("edit")
     endif
 
     return !modified
@@ -179,19 +195,16 @@ endfunction
 " FUNCTION: __HSplitWindow() {{{1 Open lode horizontally
 " ==============================================================
 function s:__HSplitWindow()
-    exe winnr('#') . "wincmd w"
-    exe "rightbelow new " . s:active.Selected().path
-    return 1
+    exe winnr('#') . 'wincmd w'
+    return s:__InitWindow('rightbelow new')
 endfunction
 
 
 " FUNCTION: __VSplitWindow() {{{1 Open lode vertically
 " ==============================================================
 function s:__VSplitWindow()
-    exe winnr('#') . "wincmd w"
-    exe "vne " . s:active.Selected().path
-    setlocal ro
-    return 1
+    exe winnr('#') . 'wincmd w'
+    return s:__InitWindow("vne")
 endfunction
 
 
