@@ -25,17 +25,26 @@ Lodes & the Manifest
 
 ### Title
 
+Like the header suggests, marks the title of the lode. Note all lodes are ordered
+alphabetically (unless categorized). The only mandatory piece of the manifest.
+
 ```javascript
   "Title" = "AVL Tree"
 ```
 
 ### Category
 
+Allows another layer of organizing lodes, grouping similar lodes together.
+
 ```javascript
-  "Category" = "Tree"
+  "Category" = "Tree/PriorityBased"
 ```
 
 ### Links
+
+Marks the names of all links relative to the lode directory. Note this does not
+mark which elements are shown- rather, it allows a pretty name. Files without
+a name default to the filename itself.
 
 ```javascript
   "Links" = [
@@ -47,6 +56,13 @@ Lodes & the Manifest
 
 ### Foreign
 
+Denotes external references to be included within the node. For example, including
+"Wikipedia" will cause another node to be openable when viewing the tree. This node
+refers to the wikipedia article of the correspondingly titled lode.
+
+The following foreign scripts are currently supported:
+* Wikipedia (soon!)
+
 ```javascript
   "Foreign" = [
       "Wikipedia" 
@@ -54,6 +70,10 @@ Lodes & the Manifest
 ```
 
 ### Ignore
+
+Marks all files to not include in the lode. Note that the manifest file is,
+by default, ignored. If you really want to see this (which kind of defeats the
+purpose of the file!) change the source ;).
 
 ```javascript
   "Ignore" = [
