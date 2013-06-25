@@ -1,9 +1,44 @@
-Lodestar
-========
+Lodestar Plugin
+===============
 
-Lodestar is a vim plugin used for quick lookups of 
-computer science topics such as data structures, algorithms,
-etc. 
+Lodes & the Manifest
+--------------------
 
-Each reference, coined a "lode", currently contains
-coding implementations of each algorithm.
+### Title
+
+```javascript
+  "Title" = "AVL Tree"
+```
+
+### Category
+
+```javascript
+  "Category" = "Tree"
+```
+
+### Links
+
+```javascript
+  "Links" = [
+      { "Python"  : "./avl.py"    },
+      { "Haskell" : "./avl.hs"    },
+      { "README"  : "./README.md" }
+  ]
+```
+
+### Foreign
+
+```javascript
+  "Foreign" = [
+      "Wikipedia" 
+  ]
+```
+
+### Ignore
+
+```javascript
+  "Ignore" = [
+      "hide_this_file.txt",
+      "hide_this_one_too.pl"
+  ]
+```
