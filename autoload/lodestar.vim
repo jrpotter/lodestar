@@ -9,7 +9,7 @@
 
 " VARIABLE: lodes_path {{{1 Path of references
 " ==============================================================
-let lodestar#lodes_path = '~/.vim/lodes'
+let lodestar#lodes_path = expand('~/.vim/lodes')
 
 
 " FUNCTION: header_guard(name) {{{1 Ensures only single include
@@ -42,20 +42,20 @@ endfunction
 " sorting quicksort's recursive halves
 " ==============================================================
 function lodestar#__partition(list, left, right)
-    let less_index = 0
     let pivot_index = (a:left + a:right) / 2
     let pivot_value = a:list[pivot_index]
 
+    let lesser = a:left
     call lodestar#swap(a:list, pivot_index, a:right)
-    for i in range(a:left, a:right - 1)
+    for i in range(a:left, a:right-1)
         if a:list[i].Compare(pivot_value) <= 0
-            call lodestar#swap(a:list, i, less_index)
-            let less_index = less_index + 1
+            call lodestar#swap(a:list, i, lesser)
+            let lesser = lesser + 1
         endif
     endfor
-    call lodestar#swap(a:list, a:right, pivot_index)
+    call lodestar#swap(a:list, a:right, lesser)
 
-    return less_index
+    return lesser
 endfunction
 
 

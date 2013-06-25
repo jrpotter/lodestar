@@ -22,8 +22,9 @@ function s:node.New(...)
     let node = deepcopy(self)
 
     " Naming/Opening node
-    let node.path = a:0 ? a:2 : 0
+    let node.path = a:0 ? a:2 : ''
     let node.names = a:0 ? a:1.names : {}
+    let node.title = node.Title()
 
     " Position relative to other nodes
     let node.pos = 0
@@ -39,16 +40,21 @@ function s:node.New(...)
 endfunction
 
 
-" FUNCTION: Title() {{{1 Get display name
+" FUNCTION: Title() {{{1 Get title or default to filename
 " ==============================================================
 function s:node.Title()
+    return get(self.names, self.path, lodestar#cut(self.path))
+endfunction
+
+
+" FUNCTION: Display() {{{1 Get screen name
+" ==============================================================
+function s:node.Display()
+    let depth = repeat('|', self.depth)
     if !isdirectory(self.path) | let type = '~'
     else | let type = self.unfolded ? '-' : '+' | endif
 
-    let depth = repeat('|', self.depth)
-    let title = get(self.names, self.path, lodestar#cut(self.path))
-
-    return depth . type . title
+    return depth . type . self.title
 endfunction
 
 
@@ -62,8 +68,8 @@ endfunction
 " FUNCTION: Compare(node) {{{1 For sorting purposes
 " ==============================================================
 function s:node.Compare(node)
-    if self.path < a:node.path | return -1
-    elseif self.path > a:node.path | return 1
+    if self.title < a:node.title | return -1
+    elseif self.title > a:node.title | return 1
     else | return 0 | endif
 endfunction
 
@@ -94,13 +100,12 @@ function s:node.Hidden()
 endfunction
 
 
-" FUNCTION: PopulateLinks(...) {{{1 Read in files from path
-" May take in another constructor for building of nodes
+" FUNCTION: ___PopulateLinks(factory) {{{1 Fills links
+" Takes in a constructor for building of nodes
 " ==============================================================
-function s:node.PopulateLinks(...)
-    let factory = a:0 ? a:1 : g:LodestarNode
+function s:node.__PopulateLinks(factory)
     for path in glob(self.path . '/*', 0, 1)
-        let sub = factory.New(self, path)
+        let sub = a:factory.New(self, path)
         call add(self.links, sub)
     endfor
 
@@ -108,14 +113,16 @@ function s:node.PopulateLinks(...)
 endfunction
 
 
-" FUNCTION: Toggle() {{{1 Toggles fold
-" If not unfolded previously, populates links
+" FUNCTION: Toggle(...) {{{1 Toggles fold
+" If not unfolded previously, populates links. May take in
+" another constructor (defaults to g:LodestarNode)
 " ==============================================================
-function s:node.Toggle()
+function s:node.Toggle(...)
+    let factory = a:0 ? a:1 : g:LodestarNode
     if isdirectory(self.path)
         if !self.opened
             let self.opened = 1
-            call self.PopulateLinks()
+            call self.__PopulateLinks(factory)
         endif
 
         let self.unfolded = !self.unfolded

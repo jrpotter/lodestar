@@ -78,6 +78,6 @@ function s:Main()
     let g:LodestarBufferMap[title] = lodestar
     let g:LodestarBufferCount = g:LodestarBufferCount + 1
 
-    call g:LodestarKeyMap()
     exe "au BufEnter " . title . " :call g:LodestarKeyMap()"
+    call g:LodestarKeyMap()
 endfunction

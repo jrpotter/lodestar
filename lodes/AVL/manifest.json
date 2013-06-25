@@ -2,6 +2,10 @@
     "Title"    : "AVL",
     "Category" : "Tree",
     "Links"    : [
-        { "Python" : "./avl.py" }
+        { "Java"    : "./avl.java" },
+        { "C++"     : "./avl.cpp"  },
+        { "PHP"     : "./avl.php"  },
+        { "Python"  : "./avl.py"   },
+        { "Haskell" : "./avl.hs"   }
     ]
 }

@@ -22,7 +22,10 @@ function! s:lode.New(parent, path)
     
     let lode.path = a:path
     let lode.parent = a:parent
+    let lode.names = a:parent.names
+
     call lode.ParseManifest()
+    let lode.title = lode.Title()
 
     return lode
 endfunction

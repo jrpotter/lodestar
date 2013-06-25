@@ -39,7 +39,7 @@ function g:LodestarKeyMap()
             redraw!
             let key = nr2char(getchar())
             let exiting = s:__MapInputKey(key)
-        catch | endtry
+        catch /^Vim:Interrupt$/ | endtry
     endwhile
 
     let g:LodestarBufferMap[name] = s:active
@@ -53,6 +53,9 @@ function s:__MapInputKey(key)
     elseif a:key == 'j'      | return s:__MoveCursorDown()
     elseif a:key == "\<CR>"  | return s:__ToggleFold()
     elseif a:key == 'o'      | return s:__ToggleFold()
+    elseif a:key == 'h'      | return s:__HSplitWindow()
+    elseif a:key == 'v'      | return s:__VSplitWindow()
+    elseif a:key == 'l'      | return s:__LeaveWindow()
     elseif a:key == 'q'      | return s:__CloseWindow()
     endif
 endfunction
@@ -123,7 +126,7 @@ function s:__ShowDirectory(node, line)
     if a:node.unfolded
         let line = a:line
         for link in a:node.links
-            call append(line, link.Title())
+            call append(line, link.Display())
             call s:__ShowDirectory(link, line + 1)
             let line = line + link.Coverage()
         endfor
@@ -138,7 +141,7 @@ function s:__ToggleFold()
     let current = s:active.Selected()
 
     call current.Toggle()
-    call setline(line, current.Title())
+    call setline(line, current.Display())
 
     if isdirectory(current.path)
         if current.unfolded
@@ -157,8 +160,45 @@ endfunction
 " FUNCTION: __OpenFile() {{{1 Opens file
 " ==============================================================
 function s:__OpenFile()
-    exe "normal! \<C-W>l"
-    exe "edit " . s:active.Selected().path
+    let window = winnr('#')
+    let modified = getwinvar(window, '&mod')
+
+    if modified
+        echo "Unsaved changes to current buffer"
+        call getchar()
+    else 
+        exe window . "wincmd w"
+        exe "edit " . s:active.Selected().path
+        setlocal ro
+    endif
+
+    return !modified
+endfunction
+
+
+" FUNCTION: __HSplitWindow() {{{1 Open lode horizontally
+" ==============================================================
+function s:__HSplitWindow()
+    exe winnr('#') . "wincmd w"
+    exe "rightbelow new " . s:active.Selected().path
+    return 1
+endfunction
+
+
+" FUNCTION: __VSplitWindow() {{{1 Open lode vertically
+" ==============================================================
+function s:__VSplitWindow()
+    exe winnr('#') . "wincmd w"
+    exe "vne " . s:active.Selected().path
+    setlocal ro
+    return 1
+endfunction
+
+
+" FUNCTION: __LeaveWindow() {{{1 Return to previous window
+" ==============================================================
+function s:__LeaveWindow()
+    exe winnr('#') . "wincmd w"
     return 1
 endfunction
 
