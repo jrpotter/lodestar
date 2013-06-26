@@ -1,1 +1,69 @@
-Future documentation on usage.
+*lodestar.txt*    For Vim version 7.3.  Last change: 2006 Aug 27
+
+
+		  VIM REFERENCE MANUAL    by Joshua Potter
+
+
+Lodestar						*lodestar*
+
+Plugin for quick references of computer science related topics
+
+Lodestar is a quickly accessable vim plugin conceptualized 
+to contain computer science-related content such as data structures, 
+algorithms, etc (though this is not strictly necessary).
+
+Modify each lodes (found in $VIM/lodes by default) manifest file for
+further configuration. Read the README.md file for instruction on how to 
+do so.
+
+1. Navigating the tree		|lodestar-navigation|
+2. Mappings                     |lodestar-mappings|
+3. Settings                     |lodestar-settings|
+
+==============================================================================
+1. Navigating the tree                                  *lodestar-navigation*
+
+<F2>                    Open new lodestar menu. Creates a new scratch buffer
+                        with name 'LodestarMenu_' appended by the number of
+                        previous menus opened during the current vim session.
+
+
+o                       Open file into previously encountered buffer. Same
+                        as <CR>.
+
+
+<CR>                    Same as 'o'
+
+
+?                       Open this documentation file
+
+
+h                       Horizontally open the currently highlighted node. 
+                        Identical to switching windows and calling :new.
+
+
+v                       Vertically open the currently highlighted node.
+                        Identical to switching windows and calling :vne.
+
+
+l                       Leave current window and return to previously 
+                        accessed window.
+
+
+q                       Quit the menu and return to previously accessed
+                        window.
+
+==============================================================================
+2. Mappings     					*lodestar-mappings*
+
+Override in your .vimrc file to take effect.
+
+
+<Plug>LodestarMain
+
+==============================================================================
+3. Settings                                             *lodestar-settings*
+
+Currently no settings are available.
+
+ vim:tw=78:ts=8:ft=help:norl:
