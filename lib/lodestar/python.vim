@@ -17,7 +17,7 @@ import vim
 import pickle, json, shutil
 import urllib2, os, os.path
 from HTMLParser import HTMLParser
-from collections import defaultdict
+from collections import defaultdict, deque
 
 def decode(member):
     """ Converts json object to usable Vim object 
@@ -48,6 +48,17 @@ def abs_path(base, rel = ''):
     base_path = os.path.expanduser(base)
     return os.path.abspath(os.path.join(base_path, rel))
 
+
+def split_path(head):
+    """ Breaks path into their constituents """
+    pieces = deque()
+    while len(head):
+        head, tail = os.path.split(path)
+        pieces.appendleft(tail)
+
+    return pieces
+        
+
 class WikiHandler(HTMLParser):
     """ Used to interact with WikiMedia's API
 
@@ -68,30 +79,36 @@ class WikiHandler(HTMLParser):
         # API Host
         self.host = 'http://en.wikipedia.org/w/api.php'
 
-        # Actions
-        self.segments = set()
-        self.search_results = []
-        self.current_segment = ''
-        self.content = defaultdict(str)
-
         # Proper etiquette with using MediaWiki
         self.opener = urllib2.build_opener()
         self.opener.addheaders = [('User-agent', 'lodestar/{}'.format(user))]
 
+        # Set up for queries
+        self.clear()
         self.cache_dir = vim.eval('g:lodestar#wiki_cache')
 
 
     def __enter__(self):
+        """ Context manager method """
         if not os.path.isdir(self.cache_dir): 
             os.mkdir(self.cache_dir)
-            print(self.cache_dir)
 
         return self
 
 
     def __exit__(self, type, value, traceback):
+        """ Context manager method """
         if os.path.isdir(self.cache_dir):
             shutil.rmtree(self.cache_dir)
+
+
+    def clear(self):
+        """ Reset all values """
+        self.segments = set()
+        self.segment_order = []
+        self.search_results = []
+        self.current_segment = ''
+        self.content = defaultdict(str)
 
 
     def sanitize(self, query):
@@ -114,6 +131,15 @@ class WikiHandler(HTMLParser):
         reply = self.opener.open(request)
         encoding = reply.headers['content-type'].split('charset=')[-1]
         return json.loads(reply.read().decode(encoding), object_hook=decode)
+
+    
+    def push_segment(self, segment):
+        """ Properly keep track of segment order. """
+        try:
+            if self.segment_order[-1] != segment:
+                self.segment_order.append(segment)
+        except IndexError:
+            self.segment_order.append(segment)
 
 
     def query(self, page):
@@ -165,6 +191,7 @@ class WikiHandler(HTMLParser):
 
         return False
 
+
     def uncache(self, path):
         """ Allows quicker accessing of contents already opened. """
         if os.path.isfile(path):
@@ -177,6 +204,9 @@ class WikiHandler(HTMLParser):
 
     def get_data(self, page, parse=0, query=0, search=0):
         """ Main method to get data. """
+
+        # For multiple calls
+        self.clear()
 
         # Check if cached version exists
         filename = page
@@ -204,6 +234,7 @@ class WikiHandler(HTMLParser):
         attrs = dict(attrs)
         if attrs.get('id') in self.segments:
             self.current_segment = attrs.get('id')
+            self.push_segment(self.current_segment)
 
 
     def handle_data(self, data):
