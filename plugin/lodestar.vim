@@ -36,15 +36,6 @@ noremap <unique> <script> <SID>Main    :call <SID>Main()<CR>
 " FUNCTION: Main() {{{1 Program called here
 " ==============================================================
 function s:Main()
-
-    "Testing
-python << endpython
-wiki = WikiHandler('jrpotter@live.unc.edu')
-print wiki.parse('AVL_tree')
-
-endpython
-    call getchar();
-
     let title = 'LodestarMenu_' . g:LodestarBufferCount
     let lodestar = g:LodestarMenu.New(title)
 

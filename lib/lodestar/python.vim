@@ -14,7 +14,8 @@ if lodestar#guard('g:loaded_LodestarPython') | finish | endif
 python << endpython
 
 import vim
-import urllib2, json, os.path
+import pickle, json, shutil
+import urllib2, os, os.path
 from HTMLParser import HTMLParser
 from collections import defaultdict
 
@@ -45,7 +46,7 @@ def abs_path(base, rel = ''):
 
     """
     base_path = os.path.expanduser(base)
-    return os.path.abspath(base_path + '/' + rel)
+    return os.path.abspath(os.path.join(base_path, rel))
 
 class WikiHandler(HTMLParser):
     """ Used to interact with WikiMedia's API
@@ -60,21 +61,43 @@ class WikiHandler(HTMLParser):
     for clean printing into a buffer.
 
     """
-    def __init__(self, user_agent):
+    def __init__(self, user):
         # Restart parsing ability
         HTMLParser.__init__(self)
-        self.reset()
-
-        # Proper etiquette with using MediaWiki
-        self.wiki_opener = urllib2.build_opener()
-        self.wiki_opener.addheaders = [('User-agent', 'lodestar')]
 
         # API Host
         self.host = 'http://en.wikipedia.org/w/api.php'
 
+        # Actions
+        self.segments = set()
+        self.search_results = []
+        self.current_segment = ''
+        self.content = defaultdict(str)
+
+        # Proper etiquette with using MediaWiki
+        self.opener = urllib2.build_opener()
+        self.opener.addheaders = [('User-agent', 'lodestar/{}'.format(user))]
+
+        self.cache_dir = vim.eval('g:lodestar#wiki_cache')
+
+
+    def __enter__(self):
+        if not os.path.isdir(self.cache_dir): 
+            os.mkdir(self.cache_dir)
+            print(self.cache_dir)
+
+        return self
+
+
+    def __exit__(self, type, value, traceback):
+        if os.path.isdir(self.cache_dir):
+            shutil.rmtree(self.cache_dir)
+
+
     def sanitize(self, query):
         """ Return a usable GET query string """
         return query.replace(' ', '+')
+
 
     def build_query(self, action, query_parts):
         full_query = self.host
@@ -85,12 +108,13 @@ class WikiHandler(HTMLParser):
 
         return full_query
 
+
     def extract_content(self, request):
         """ Convert WikiMedia response to usable JSON format """
-        content = {}
-        reply = self.wiki_opener.open(request)
+        reply = self.opener.open(request)
         encoding = reply.headers['content-type'].split('charset=')[-1]
-        return json.loads(reply.read().decode(encoding), object_hook = decode)
+        return json.loads(reply.read().decode(encoding), object_hook=decode)
+
 
     def query(self, page):
         """ Use API's action=query method for receiving data """
@@ -103,12 +127,19 @@ class WikiHandler(HTMLParser):
         query_string = self.build_query('query', request)
         response = self.extract_content(query_string)
 
+        # Get data
+        page_info = response['query']['pages'].popitem()[1]
+        self.content['displaytitle'] = page_info['displaytitle']
+        self.feed(page_info['extract'])
+
+
     def search(self, page):
         """ Use API's action=opensearch method for receiving data """
         request = [('search', self.sanitize(page))]
 
         query_string = self.build_query('opensearch', request)
-        response = self.extract_content(query_string)        
+        self.content['search'] = self.extract_content(query_string)[-1]
+
 
     def parse(self, page):
         """ Use API's action=parse method for receiving data """
@@ -119,17 +150,67 @@ class WikiHandler(HTMLParser):
         query_string = self.build_query('parse', request)
         response = self.extract_content(query_string)        
 
-    def cache(self):
-        """ Saves contents for current session only. """
-        pass
+        # Each anchor marks the next segment
+        sections = response['parse']['sections']
+        self.segments = set([link['anchor'] for link in sections])
+        self.feed(response['parse']['text']['*'])
 
-    #Overriden methods
+
+    def cache(self, path, response):
+        """ Saves contents for current session only. """
+        if not os.path.isfile(path):
+            with open(path, 'wb') as file:
+                pickle.dump(response, file)
+            return True
+
+        return False
+
+    def uncache(self, path):
+        """ Allows quicker accessing of contents already opened. """
+        if os.path.isfile(path):
+            with open(path, 'rb') as file:
+                self.content = pickle.load(path)
+            return True
+
+        return False
+
+
+    def get_data(self, page, parse=0, query=0, search=0):
+        """ Main method to get data. """
+
+        # Check if cached version exists
+        filename = page
+        if parse:  filename += '_parse'
+        if query:  filename += '_query'
+        if search: filename += '_search'
+
+        cache_file = os.path.join(self.cache_dir, filename)
+
+        if not self.uncache(cache_file):
+
+            # Build up contents
+            if parse:  self.parse(page)
+            if query:  self.query(page)
+            if search: self.search(page)
+
+            self.cache(cache_file, self.content)
+
+        return self.content
+
+
+    # Overriden methods
     def handle_starttag(self, tag, attrs):
         """ Find anchor tags referenced in wiki sections """
-        pass
+        attrs = dict(attrs)
+        if attrs.get('id') in self.segments:
+            self.current_segment = attrs.get('id')
+
 
     def handle_data(self, data):
         """ Find all non-markup text and save in proper sections """
-        pass
+        if len(self.current_segment):
+            self.content[self.current_segment] += data
+        else:
+            self.content['introduction'] += data
 
 endpython
