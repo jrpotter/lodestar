@@ -1,32 +1,38 @@
 " ==============================================================
-" File:         menu.vim
-" Description:  Viewport of lode hierarchy
+" File:         view.vim
 " Maintainer:   Joshua Potter <jrpotter@live.unc.edu>
 " License:      Apache License, Version 2.0
+" Description:  Viewport of lode hierarchy. This class also
+"               serves as the parentmost node. 
 "
 " ==============================================================
 
 
 " Initialization {{{1
 " ==============================================================
-if lodestar#guard('g:loaded_LodestarMenu') | finish | endif
+if lodestar#guard('g:loaded_LodestarView') | finish | endif
 
-let s:menu = g:LodestarNode.New()
-let g:LodestarMenu = s:menu
+" Keep static members of g:LodestarNode
+let s:view = copy(g:LodestarNode)
+let g:LodestarView = s:view
 
 
 " FUNCTION: New(title) {{{1 Constructor
-" Expects unique buffer name to avoid inconsistencies
+" Expects name of the scratch buffer created
 " ==============================================================
-function! s:menu.New(title)
-    let menu = deepcopy(self)
+function! s:view.New(title)
+    let view = copy(self)
 
-    let menu.isdirectory = 1
-    let menu.title = a:title
-    let menu.path = g:lodestar#lodes_path
+    " Required node values
+    let view.pos = 0
+    let view.isdir = 1
+    let view.limit = 0
+    let view.depth = -1
+    let view.links = []
+    let view.path = g:lodestar#lodes_path
 
     " Setup Window
-    exe "30vne " . menu.title
+    exe "30vne " . a:title
     setlocal cursorline
     setlocal winfixwidth
     setlocal noswapfile
@@ -41,47 +47,17 @@ function! s:menu.New(title)
     hi CursorLine term=bold ctermfg=Green
 
     " Draw screen
-    call menu.Toggle(g:LodestarLode)
-    call menu.Categorize()
-    call menu.DrawHeader()
-    call menu.DrawLinks()
+    call view.Open()
+    call view.DrawHeader()
+    call view.DrawLinks()
 
-    return menu
-endfunction
-
-" FUNCTION: Categorize() {{{1 Change links to categories
-" ==============================================================
-function s:menu.Categorize()
-    let categories = {}
-    let links = copy(self.links)
-
-    for link in links    
-        let name = link.category
-        if !empty(name)
-            " Remove link
-            let pos = index(self.links, link)
-            call remove(self.links, pos)
-
-            " Add category
-            if !has_key(categories, name)
-                let categories[name] = g:LodestarCategory.New(link)
-                let categories[name].parent = self
-                call add(self.links, categories[name])
-            endif
-
-            let link.depth = link.depth + 1
-            let link.parent = categories[name]
-            call add(categories[name].links, link)
-        endif
-    endfor
-
-    call lodestar#quicksort(self.links)
+    return view
 endfunction
 
 
 " FUNCTION: DrawHeader() {{{1 Write header to top of buffer
 " ==============================================================
-function s:menu.DrawHeader()
+function s:view.DrawHeader()
     let header = [
         \ '------Lodestar Menu------',
         \ '=========================']
@@ -100,7 +76,7 @@ endfunction
 
 " FUNCTION: DrawLinks() {{{1 Write links from header down
 " ==============================================================
-function s:menu.DrawLinks()
+function s:view.DrawLinks()
     let i = self.limit
     for link in self.links
         call append(i, link.Display())

@@ -1,7 +1,0 @@
-{
-    "Title"    : "Splay Tree",
-    "Category" : "Tree",
-    "Links"    : [
-        { "Java" : "./splay.java" }
-    ]
-}

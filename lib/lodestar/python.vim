@@ -48,7 +48,6 @@ def abs_path(base, rel = ''):
     base_path = os.path.expanduser(base)
     return os.path.abspath(os.path.join(base_path, rel))
 
-
 def split_path(head):
     """ Breaks path into their constituents """
     pieces = deque()

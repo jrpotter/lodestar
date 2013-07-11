@@ -24,16 +24,24 @@ endfunction
 " FUNCTION: cut(path) {{{1 Remove last segment of a path
 " ==============================================================
 function lodestar#cut(path)
-    let piece = strridx(a:path, '/')
-    return strpart(a:path, piece + 1)
+python << endpython
+path = vim.eval('a:path')
+head, tail = os.path.split(path)
+vim.command("return '{}'".format(tail))
+endpython
 endfunction
 
 
-" FUNCTION: ext(path) {{{1 Get file extension of path
+" FUNCTION: join(head, tail) {{{1 Join
 " ==============================================================
-function lodestar#ext(path)
-    let piece = strridx(a:path, '.')
-    return strpart(a:path, piece + 1)
+function lodestar#join(head, tail)
+python << endpython
+head = vim.eval('a:head')
+tail = vim.eval('a:tail')
+path = os.path.join(head, tail)
+
+vim.command("return '{}'".format(path))
+endpython
 endfunction
 
 
@@ -82,3 +90,4 @@ function lodestar#quicksort(list, ...)
         call lodestar#quicksort(a:list, pivot + 1, right)
     endif
 endfunction
+

@@ -15,13 +15,8 @@ runtime lib/lodestar/keymap.vim
 
 " Nodes
 runtime lib/lodestar/node.vim
-runtime lib/lodestar/lode.vim
-
-" Fake nodes
-runtime lib/lodestar/fake_node.vim
-runtime lib/lodestar/category.vim
 runtime lib/lodestar/wiki.vim
-runtime lib/lodestar/menu.vim
+runtime lib/lodestar/view.vim
 
 
 " Custom map {{{1 Map <Plug>LodestarMain in .vimrc
@@ -37,7 +32,7 @@ noremap <unique> <script> <SID>Main    :call <SID>Main()<CR>
 " ==============================================================
 function s:Main()
     let title = 'LodestarMenu_' . g:LodestarBufferCount
-    let lodestar = g:LodestarMenu.New(title)
+    let lodestar = g:LodestarView.New(title)
 
     let g:LodestarBufferMap[title] = lodestar
     let g:LodestarBufferCount = g:LodestarBufferCount + 1

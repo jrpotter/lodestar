@@ -145,11 +145,16 @@ function s:__ToggleFold()
     call current.Toggle()
     call setline(line, current.Display())
 
-    if current.isdirectory
+    if current.isdir
         if current.unfolded
             call s:__ShowDirectory(current, line)
         else
-            let clean = current.Hidden()
+            let clean = 0
+            for link in current.links
+                if empty(link) | continue | endif
+                let clean = clean + link.Coverage() 
+            endfor
+
             if clean > 0
                 exe line + 1 . "d _ " . clean
                 call cursor(line, 1)

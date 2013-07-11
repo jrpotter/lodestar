@@ -14,39 +14,33 @@ if lodestar#guard('g:loaded_LodestarNode') | finish | endif
 let s:node = {}
 let g:LodestarNode = s:node
 
+" Static members
+let g:LodestarNode.names = {}
+let g:LodestarNode.ignores = {}
 
-" FUNCTION: New(...) {{{1 Constructor
-" May take in a parent/path for proper traversal upon navigation
+
+" FUNCTION: New(path, parent) {{{1 Constructor
 " ==============================================================
-function s:node.New(...)
-    let node = deepcopy(self)
-
-    " Naming/Opening node
-    let node.category = ''
-    let node.path = a:0 ? a:2 : ''
-    let node.names = a:0 ? a:1.names : {}
-    let node.title = node.Title()
-    let node.isdirectory = isdirectory(node.path)
+function s:node.New(path, parent)
+    let node = copy(self)
 
     " Position relative to other nodes
     let node.pos = 0
     let node.links = []
-    let node.ignore = []
-    let node.parent = a:0 ? a:1 : {}
+    let node.parent = a:parent
+
+    " Naming/Opening node
+    let node.path = a:path
+    let node.isdir = isdirectory(node.path)
+    call node.ParseManifest()
+    let node.title = get(self.names, a:path, lodestar#cut(a:path))
 
     " Keeps state of node
     let node.opened = 0
     let node.unfolded = 0
-    let node.depth = a:0 ? a:1.depth + 1 : 0
+    let node.depth = a:parent.depth + 1
 
     return node
-endfunction
-
-
-" FUNCTION: Title() {{{1 Get title or default to filename
-" ==============================================================
-function s:node.Title()
-    return get(self.names, self.path, lodestar#cut(self.path))
 endfunction
 
 
@@ -54,7 +48,7 @@ endfunction
 " ==============================================================
 function s:node.Display()
     let depth = repeat('|', self.depth)
-    if !self.isdirectory | let type = '~'
+    if !self.isdir | let type = '~'
     else | let type = self.unfolded ? '-' : '+' | endif
 
     return depth . type . self.title
@@ -64,7 +58,7 @@ endfunction
 " FUNCTION: Selected() {{{1 Currently active subnode
 " ==============================================================
 function s:node.Selected()
-    return self.links[self.pos]
+    return empty(self.links) ? {} : self.links[self.pos]
 endfunction
 
 
@@ -91,25 +85,55 @@ function s:node.Coverage()
 endfunction
 
 
-" FUNCTION: Hidden() {{{1 Number of lines hidden
+" FUNCTION: ParseManifest() {{{1 
+" If a manifest file is present in the current directory, it
+" is attempted to be parsed, and the corresponding values
+" assigned in the vim environment
 " ==============================================================
-function s:node.Hidden()
-    let total = 0
-    for link in self.links
-        let sub = link.Coverage()
-        let total = total + sub
-    endfor 
-    return total
+function s:node.ParseManifest()
+python << endpython
+
+path = vim.eval('self.path')
+man_path = abs_path(path, 'manifest.json')
+
+names = {}
+ignores = {}
+
+try:
+    with open(man_path, 'r') as man_fp:
+        manifest = json.load(man_fp, object_hook = decode)
+
+        # The title replaces the default directory name
+        if manifest.has_key('Title'): names[path] = manifest['Title']
+
+        # Ignore manifest file by default
+        ignores[man_path] = 1        
+        ignores.update({ k : 1 for k in manifest.get('Ignore', [])})
+
+        # Pair paths to new names
+        for name, addr in manifest.get('Links', {}).iteritems():
+            names[abs_path(path, addr)] = name
+
+        # Assign in Vim
+        vim.command('call extend(self.names, {})'.format(names))
+        vim.command('call extend(self.ignores, {})'.format(ignores))
+
+except IOError:
+    pass
+
+endpython
 endfunction
 
 
-" FUNCTION: ___PopulateLinks(factory) {{{1 Fills links
-" Takes in a constructor for building of nodes
+" FUNCTION: Open() {{{1 Used to prevent unnecessary loading
+" Called when something is opened for the first time- not
+" called again afterward
 " ==============================================================
-function s:node.__PopulateLinks(factory)
-    for path in glob(self.path . '/*', 0, 1)
-        if index(self.ignore, path) < 0
-            let sub = a:factory.New(self, path)
+function s:node.Open()
+    let self.opened = 1
+    for path in glob(lodestar#join(self.path, '*'), 0, 1)
+        if !has_key(self.ignores, path)
+            let sub = g:LodestarNode.New(path, self)
             call add(self.links, sub)
         endif
     endfor
@@ -118,18 +142,11 @@ function s:node.__PopulateLinks(factory)
 endfunction
 
 
-" FUNCTION: Toggle(...) {{{1 Toggles fold
-" If not unfolded previously, populates links. May take in
-" another constructor (defaults to g:LodestarNode)
+" FUNCTION: Toggle() {{{1 Show folded or unfolded
 " ==============================================================
-function s:node.Toggle(...)
-    let factory = a:0 ? a:1 : g:LodestarNode
-    if self.isdirectory
-        if !self.opened
-            let self.opened = 1
-            call self.__PopulateLinks(factory)
-        endif
-
+function s:node.Toggle()
+    if self.isdir
+        if !self.opened | call self.Open() | endif
         let self.unfolded = !self.unfolded
     endif
 endfunction
