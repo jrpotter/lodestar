@@ -225,6 +225,10 @@ function s:__SearchWiki()
         echo "Unsaved changes to current buffer"
         call getchar()
     else 
+        exe winnr('#') . 'wincmd w'
+        setlocal tw=80
+        setlocal noswapfile
+        setlocal buftype=nofile
 
 python << endpython
 
@@ -246,7 +250,6 @@ with WikiHandler(user_agent) as wiki:
     content = wiki.get_data(query, True, True)
 
     # Set up buffer
-    vim.command("exe winnr('#') . 'wincmd w'")
     del vim.current.buffer[:]
     vim.current.buffer[0] = "Wikipedia: " + str(query)
 
@@ -258,16 +261,12 @@ with WikiHandler(user_agent) as wiki:
         vim.current.buffer.append('================')
 
         content_sections = content[section].split("\n")
-        for cs in content_sections:
-            if len(cs.strip()):
-                vim.current.buffer.append(cs)
-
-    # Make some final modifications
-    vim.command("set ro")
-    vim.command("set noswapfile")
-    vim.command("set buftype=nofile")
+        for cs in content_sections: vim.current.buffer.append(cs)
 
 endpython
+        " Select all in visual mode and format
+        normal! ggVGgqgg
+        setlocal ro
         return 1
     endif
 endfunction

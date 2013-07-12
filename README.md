@@ -18,6 +18,7 @@ By default, the following keys are used:
 * `v`    - Open node in a vertically split window
 * `h`    - Open node in a horizontally split window
 * `r`    - Refresh current directory
+* `w`    - Open wikipedia reference
 * `l`    - Leave menu
 * `q`    - Quit menu
 * `?`    - Display help
@@ -59,4 +60,18 @@ purpose of the file!) change the source ;).
       "hide_this_file.txt",
       "hide_this_one_too.pl"
   ]
+```
+
+### Wikipedia
+
+One can get a list of sections and content written out to a buffer when
+pressing `w` over a node. If the manifest file specifies the following, 
+lodestar queries the value passed. Otherwise it defaults to searching the
+title and displaying the results of the first find.
+
+Formatting isn't as clean as desired, though this will be addressed in
+future versions.
+
+```javascript
+  "Wikipedia" : "Algorithm"  
 ```

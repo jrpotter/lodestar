@@ -1,4 +1,4 @@
-*lodestar.txt*    For Vim version 7.3.  Last change: 2013 Jul 11
+*lodestar.txt*    For Vim version 7.3.  Last change: 2013 Jul 12
 
 
 		  VIM REFERENCE MANUAL    by Joshua Potter
@@ -28,8 +28,7 @@ do so.
                         previous menus opened during the current vim session.
 
 
-o                       Open file into previously encountered buffer. Same
-                        as <CR>.
+o                       Open file into previously encountered buffer. 
 
 
 <CR>                    Same as 'o'
@@ -55,7 +54,7 @@ q                       Quit the menu and return to previously accessed
 
 
 r                       Refresh the current directory, repopulating the
-                        underlying model.
+                        underlying model. 
 
 ==============================================================================
 2. Mappings     					*lodestar-mappings*
