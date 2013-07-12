@@ -134,10 +134,11 @@ class WikiHandler(HTMLParser):
 
     def query(self, page):
         """ Use API's action=query method for receiving data """
-        request = [('prop'   , 'extracts|info'    )
-                  ,('inprop' , 'displaytitle'     )
-                  ,('exintro', ''                 )
-                  ,('titles' , self.sanitize(page))
+        request = [('prop'     , 'extracts|info'    )
+                  ,('inprop'   , 'displaytitle'     )
+                  ,('exintro'  , ''                 )
+                  ,('titles'   , self.sanitize(page))
+                  ,('redirects', ''                 )
                   ]
 
         query_string = self.build_query('query', request)
@@ -151,7 +152,9 @@ class WikiHandler(HTMLParser):
 
     def search(self, page):
         """ Use API's action=opensearch method for receiving data """
-        request = [('search', self.sanitize(page))]
+        request = [('limit', '1'                 )
+                  ,('search', self.sanitize(page))
+                  ]
 
         query_string = self.build_query('opensearch', request)
         self.content['search'] = self.extract_content(query_string)[-1]
@@ -192,7 +195,7 @@ class WikiHandler(HTMLParser):
         return False
 
 
-    def get_data(self, page, parse=0, query=0, search=0):
+    def get_data(self, page, parse=False, query=False, search=False):
         """ Main method to get data. """
 
         # For multiple calls

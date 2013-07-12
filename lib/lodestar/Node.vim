@@ -24,24 +24,26 @@ let g:LodestarNode.ignore = {}
 function s:Node.new(path, parent)
     let Node = copy(self)
 
-    " Sets up any globals necessary
-    call Node.parseManifest(a:path)
-
     " Position relative to other nodes
     let Node.pos = 0
     let Node.links = []
     let Node.parent = a:parent
-
-    " Naming/Opening node
-    let Node.path = a:path
-    let Node.isdir = isdirectory(a:path)
-    let Node.title = get(self.names, a:path, lodestar#cut(a:path))
 
     " Other node properties
     let Node.empty = 0
     let Node.opened = 0
     let Node.unfolded = 0
     let Node.depth = a:parent.depth + 1
+
+    let Node.path = a:path
+    let Node.isdir = isdirectory(a:path)
+
+    " Foreign calls
+    let Node.wiki = ''
+
+    " Set up naming
+    call Node.parseManifest(a:path)
+    let Node.title = get(self.names, a:path, lodestar#cut(a:path))
 
     return Node
 endfunction
@@ -74,7 +76,8 @@ try:
 
         # Ignores the manifest file by default
         ignore[manifest_path] = 1
-        ignore.update({k : 1 for k in manifest.get('Ignore', [])})
+        for i in manifest.get('Ignore', []):
+            ignore[abs_path(path, i)] = 1
 
         # Reads in local links, pairing each to its own name
         # This value defaults to the filename if not specified
@@ -82,20 +85,19 @@ try:
         for name, addr in links.iteritems():
             names[abs_path(path, addr)] = name
 
-        # Reads in Wikipedia data, creating a new node if provided
-        if manifest.has_key('Wikipedia'):
-            wiki = manifest['Wikipedia']
-            vim.command('call add(self.links, g:LodestarWiki.new({}))'.format(wiki))
-
-        # Finishes passing the values to the Vim environment
+        # Passing the values to the Vim environment
         vim.command('call extend(self.names, {})'.format(names))
         vim.command('call extend(self.ignore, {})'.format(ignore))
 
+        # Read in wikipedia page if available
+        if manifest.has_key('Wikipedia'):
+            vim.command("let self.wiki = '{}'".format(manifest['Wikipedia']))
+
 except IOError:
-    pass
+    print('{} skipped: no manifest file'.format(path))
 
 except ValueError:
-    pass
+    print("{}'s manifest file syntactically incorrect".format(path))
 
 endpython
 endfunction
@@ -156,11 +158,8 @@ endfunction
 " FUNCTION: open() {{{1 Populates links of current node
 " ==============================================================
 function s:Node.open()
-    " Clear current links
-    if !empty(self.links)
-        call remove(self.links, 0, len(self.links))
-    endif
-
+    let self.opened = 1
+    
     " Read in files of current directory
     for path in glob(lodestar#join(self.path, '*'), 0, 1)
         if !has_key(self.ignore, path)
@@ -182,7 +181,6 @@ function s:Node.toggle()
     if self.isdir
         if !self.opened
             call self.open()
-            let self.opened = 1
         endif
 
         " Maintains correct scrolling (which checks unfolded)

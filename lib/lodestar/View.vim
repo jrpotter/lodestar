@@ -67,6 +67,7 @@ endfunction
 function s:View.drawHeader()
     let header = [
         \ '------Lodestar Menu------',
+        \ "   Press '?' for help    ",
         \ '=========================']
 
     let i = 0

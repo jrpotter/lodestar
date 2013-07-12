@@ -10,6 +10,7 @@
 " VARIABLE: lodes_path {{{1 Path of references
 " ==============================================================
 let lodestar#lodes_path = expand('~/.vim/lodes')
+let lodestar#user_agent = 'jrpotter@live.unc.edu'
 let lodestar#wiki_cache = expand('~/.vim/lodes/.wiki_cache')
 
 

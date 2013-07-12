@@ -40,6 +40,7 @@ function s:Main()
     let g:LodestarBufferCount = g:LodestarBufferCount + 1
 
     " Make sure first & subsequent calls run KeyMap
+    exe "au BufEnter " . title . " :call g:LodestarClose()"
     exe "au BufEnter " . title . " :call g:LodestarKeyMap()"
     call g:LodestarKeyMap()
 endfunction

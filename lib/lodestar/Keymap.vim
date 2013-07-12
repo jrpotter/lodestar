@@ -27,6 +27,15 @@ let g:LodestarBufferMap = {}
 let g:LodestarBufferCount = 0
 
 
+" FUNCTION: LodestarClose() {{{1 Close window if last
+" ==============================================================
+function g:LodestarClose()
+    if winnr() == winnr('$')
+        call s:__CloseWindow()
+    endif
+endfunction
+
+
 " FUNCTION: LodestarKeyMap() {{{1 Reads in key and calls the
 " appropriate function
 " ==============================================================
@@ -54,10 +63,13 @@ function s:__MapInputKey(key)
     elseif a:key == 'j'      | return s:__MoveCursorDown()
     elseif a:key == "\<CR>"  | return s:__ToggleFold()
     elseif a:key == 'o'      | return s:__ToggleFold()
+    elseif a:key == 'r'      | return s:__RefreshFold()
     elseif a:key == 'h'      | return s:__HSplitWindow()
     elseif a:key == 'v'      | return s:__VSplitWindow()
+    elseif a:key == 'w'      | return s:__SearchWiki()
     elseif a:key == 'l'      | return s:__LeaveWindow()
     elseif a:key == 'q'      | return s:__CloseWindow()
+    elseif a:key == '?'      | return s:__DisplayHelp()
     endif
 endfunction
 
@@ -95,6 +107,12 @@ function s:__MoveCursorUp()
     elseif !empty(s:active.parent)
         let s:active = s:active.parent
         call cursor(line('.') - 1, 1)
+
+    " Show the header again
+    else
+        let current = line('.')
+        normal! gg
+        call cursor(current, 1)
     endif
 endfunction
 
@@ -122,6 +140,7 @@ function s:__MoveCursorDown()
         endif
     endif
 endfunction
+
 
 " FUNCTION: __ShowDirectory(node, line) {{{1 Display contents
 " ==============================================================
@@ -153,6 +172,27 @@ function s:__CleanDirectory(node, line)
 endfunction
 
 
+" FUNCTION: __RefreshFold() {{{1 Repopulate the node
+" ==============================================================
+function s:__RefreshFold()
+    let current = s:active.active()
+
+    if current.unfolded
+        call s:__ToggleFold()
+    endif
+
+    " Clear current links
+    if !empty(current.links)
+        call remove(current.links, 0, len(current.links) - 1)
+    endif
+
+    " Rebuild entirely
+    call current.parseManifest(current.path)
+    call current.open()        
+    call setline(line('.'), current.screenName())
+endfunction
+
+
 " FUNCTION: __ToggleFold() {{{1 Opens/Closes selected node
 " ==============================================================
 function s:__ToggleFold()
@@ -162,26 +202,81 @@ function s:__ToggleFold()
     call current.toggle()
     call setline(line, current.screenName())
 
-    if !current.empty
-        if current.isdir
+    if current.isdir
+        if !current.empty
             if current.unfolded
                 call s:__ShowDirectory(current, line)
             else
                 call s:__CleanDirectory(current, line)
             endif
-        else
-            return s:__OpenFile()
         endif
+    else
+        return s:__OpenFile()
     endif
 endfunction
 
 
-" FUNCTION: __InitWindow(path) {{{1 Initialize new window
+" FUNCTION: __SearchWiki() {{{1 Queries Wikipedia content
 " ==============================================================
-function s:__InitWindow(command) 
-    let path = s:active.active().path
+function s:__SearchWiki()
+    let current = s:active.active()
 
-    exe a:command . " " . path
+    if getwinvar(winnr('#'), '&mod')
+        echo "Unsaved changes to current buffer"
+        call getchar()
+    else 
+
+python << endpython
+
+# Should provide user_agent when using WikiMedia's API
+user_agent = vim.eval('g:lodestar#user_agent')
+
+with WikiHandler(user_agent) as wiki:
+    # If no page specified, must search again with result
+    query = vim.eval('current.wiki')
+
+    if not len(query): 
+        query = vim.eval('current.title')
+        try:
+            content = wiki.get_data(query, search=True)
+            query = content['search'][0]
+        except IndexError:
+            print("Search returned no results")
+
+    content = wiki.get_data(query, True, True)
+
+    # Set up buffer
+    vim.command("exe winnr('#') . 'wincmd w'")
+    del vim.current.buffer[:]
+    vim.current.buffer[0] = "Wikipedia: " + str(query)
+
+    # Display content in order
+    sections = ['introduction'] + wiki.segment_order
+    for section in sections:
+        vim.current.buffer.append('')
+        vim.current.buffer.append(section)
+        vim.current.buffer.append('================')
+
+        content_sections = content[section].split("\n")
+        for cs in content_sections:
+            if len(cs.strip()):
+                vim.current.buffer.append(cs)
+
+    # Make some final modifications
+    vim.command("set ro")
+    vim.command("set noswapfile")
+    vim.command("set buftype=nofile")
+
+endpython
+        return 1
+    endif
+endfunction
+
+
+" FUNCTION: __InitWindow(cmd) {{{1 Initialize new window
+" ==============================================================
+function s:__InitWindow(cmd) 
+    exe a:cmd . " " . s:active.active().path
     filetype detect
     setlocal ro
 
@@ -235,5 +330,13 @@ endfunction
 " ==============================================================
 function s:__CloseWindow()
     exe 'q'
+    return 1
+endfunction
+
+
+" FUNCTION: __DisplayHelp() {{{1 Exit Menu
+" ==============================================================
+function s:__DisplayHelp()
+    help lodestar
     return 1
 endfunction
