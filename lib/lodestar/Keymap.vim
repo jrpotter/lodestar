@@ -74,6 +74,22 @@ function s:__MapInputKey(key)
 endfunction
 
 
+" FUNCTION: __VerifyOverwrite() {{{1 Determines user wants to
+" overwrite current content in buffer
+" ==============================================================
+function s:__VerifyOverwrite()
+    if getwinvar(winnr('#'), '&mod')
+        echo "Overwrite unsaved changes (Y/n)"
+        let answer = nr2char(getchar())
+        if answer == 'y' || answer == 'Y'
+            return 1
+        endif
+    else 
+        return 1
+    endif
+endfunction
+
+
 " FUNCTION: __MoveCursorUp() {{{1 Set cursor up one position
 " Three possible situations are available:
 "
@@ -221,10 +237,7 @@ endfunction
 function s:__SearchWiki()
     let current = s:active.active()
 
-    if getwinvar(winnr('#'), '&mod')
-        echo "Unsaved changes to current buffer"
-        call getchar()
-    else 
+    if s:__VerifyOverwrite()
         exe winnr('#') . 'wincmd w'
         setlocal tw=80
         setlocal noswapfile
@@ -275,9 +288,11 @@ endfunction
 " FUNCTION: __InitWindow(cmd) {{{1 Initialize new window
 " ==============================================================
 function s:__InitWindow(cmd) 
-    exe a:cmd . " " . s:active.active().path
+    exe a:cmd . "! " . s:active.active().path
     filetype detect
     setlocal ro
+    setlocal noswapfile
+    setlocal buftype=nofile
 
     return 1
 endfunction
@@ -289,15 +304,13 @@ function s:__OpenFile()
     let window = winnr('#')
     let modified = getwinvar(window, '&mod')
 
-    if modified
-        echo "Unsaved changes to current buffer"
-        call getchar()
-    else 
+    let overwrite = s:__VerifyOverwrite()
+    if overwrite
         exe window . 'wincmd w'
         call s:__InitWindow("edit")
     endif
 
-    return !modified
+    return overwrite
 endfunction
 
 
