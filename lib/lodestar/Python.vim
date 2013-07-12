@@ -1,8 +1,8 @@
 " ==============================================================
-" File:         python.vim
-" Description:  Python functions used by lodestar
+" File:         Python.vim
 " Maintainer:   Joshua Potter <jrpotter@live.unc.edu>
 " License:      Apache License, Version 2.0
+" Description:  Python functions used by lodestar
 "
 " ==============================================================
 
@@ -48,15 +48,6 @@ def abs_path(base, rel = ''):
     base_path = os.path.expanduser(base)
     return os.path.abspath(os.path.join(base_path, rel))
 
-def split_path(head):
-    """ Breaks path into their constituents """
-    pieces = deque()
-    while len(head):
-        head, tail = os.path.split(path)
-        pieces.appendleft(tail)
-
-    return pieces
-        
 
 class WikiHandler(HTMLParser):
     """ Used to interact with WikiMedia's API
@@ -72,7 +63,6 @@ class WikiHandler(HTMLParser):
 
     """
     def __init__(self, user):
-        # Restart parsing ability
         HTMLParser.__init__(self)
 
         # API Host
@@ -116,6 +106,7 @@ class WikiHandler(HTMLParser):
 
 
     def build_query(self, action, query_parts):
+        """ Read values and write GET query """
         full_query = self.host
         full_query += '?action={}&format=json'.format(action)
         for param, value in query_parts:
@@ -131,7 +122,7 @@ class WikiHandler(HTMLParser):
         encoding = reply.headers['content-type'].split('charset=')[-1]
         return json.loads(reply.read().decode(encoding), object_hook=decode)
 
-    
+
     def push_segment(self, segment):
         """ Properly keep track of segment order. """
         try:
@@ -242,5 +233,6 @@ class WikiHandler(HTMLParser):
             self.content[self.current_segment] += data
         else:
             self.content['introduction'] += data
+
 
 endpython

@@ -1,8 +1,8 @@
 " ==============================================================
-" File:         node.vim
-" Description:  Controls input when in a menu
+" File:         Keymap.vim
 " Maintainer:   Joshua Potter <jrpotter@live.unc.edu>
 " License:      Apache License, Version 2.0
+" Description:  Controls all input when in a menu
 "
 " ==============================================================
 
@@ -27,7 +27,8 @@ let g:LodestarBufferMap = {}
 let g:LodestarBufferCount = 0
 
 
-" FUNCTION: LodestarKeyMap() {{{1 Reads in key and delegates out
+" FUNCTION: LodestarKeyMap() {{{1 Reads in key and calls the
+" appropriate function
 " ==============================================================
 function g:LodestarKeyMap()
     let exiting = 0
@@ -80,7 +81,7 @@ function s:__MoveCursorUp()
     " Case 3
     if s:active.pos > 0
         let s:active.pos = s:active.pos - 1 
-        let current = s:active.Selected()
+        let current = s:active.active()
 
         " Case 1
         while current.unfolded
@@ -104,8 +105,8 @@ endfunction
 function s:__MoveCursorDown()
     if line('.') < line('$')
         " Case 1
-        if s:active.Selected().unfolded
-            let s:active = s:active.Selected()
+        if s:active.active().unfolded
+            let s:active = s:active.active()
             call cursor(line('.') + 1, 1)
 
         " Case 3
@@ -128,10 +129,26 @@ function s:__ShowDirectory(node, line)
     if a:node.unfolded
         let line = a:line
         for link in a:node.links
-            call append(line, link.Display())
+            call append(line, link.screenName())
             call s:__ShowDirectory(link, line + 1)
-            let line = line + link.Coverage()
+            let line = line + link.coverage()
         endfor
+    endif
+endfunction
+
+
+" FUNCTION: __CleanDirectory(node, line) {{{1 Removes lines
+" ==============================================================
+function s:__CleanDirectory(node, line)
+    let clean = 0
+    for link in a:node.links
+        let clean = clean + link.coverage() 
+    endfor
+
+    " Fails when deleting 0
+    if clean > 0
+        exe a:line + 1 . "d _ " . clean
+        call cursor(a:line, 1)
     endif
 endfunction
 
@@ -140,28 +157,21 @@ endfunction
 " ==============================================================
 function s:__ToggleFold()
     let line = line('.')
-    let current = s:active.Selected()
+    let current = s:active.active()
 
-    call current.Toggle()
-    call setline(line, current.Display())
+    call current.toggle()
+    call setline(line, current.screenName())
 
-    if current.isdir
-        if current.unfolded
-            call s:__ShowDirectory(current, line)
-        else
-            let clean = 0
-            for link in current.links
-                if empty(link) | continue | endif
-                let clean = clean + link.Coverage() 
-            endfor
-
-            if clean > 0
-                exe line + 1 . "d _ " . clean
-                call cursor(line, 1)
+    if !current.empty
+        if current.isdir
+            if current.unfolded
+                call s:__ShowDirectory(current, line)
+            else
+                call s:__CleanDirectory(current, line)
             endif
+        else
+            return s:__OpenFile()
         endif
-    else
-        return s:__OpenFile()
     endif
 endfunction
 
@@ -169,7 +179,7 @@ endfunction
 " FUNCTION: __InitWindow(path) {{{1 Initialize new window
 " ==============================================================
 function s:__InitWindow(command) 
-    let path = s:active.Selected().path
+    let path = s:active.active().path
 
     exe a:command . " " . path
     filetype detect

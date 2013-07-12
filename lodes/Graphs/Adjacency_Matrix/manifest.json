@@ -1,8 +1,0 @@
-{
-    "Title" : "Adjacency Matrix",
-    "Links" : {
-        "Python"  : "./avl.py",
-        "C++"     : "./avl.cpp",
-        "Haskell" : "./avl.hs"
-    }
-}

@@ -1,4 +1,4 @@
-*lodestar.txt*    For Vim version 7.3.  Last change: 2006 Aug 27
+*lodestar.txt*    For Vim version 7.3.  Last change: 2013 Jul 11
 
 
 		  VIM REFERENCE MANUAL    by Joshua Potter
@@ -52,6 +52,10 @@ l                       Leave current window and return to previously
 
 q                       Quit the menu and return to previously accessed
                         window.
+
+
+r                       Refresh the current directory, repopulating the
+                        underlying model.
 
 ==============================================================================
 2. Mappings     					*lodestar-mappings*

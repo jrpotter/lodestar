@@ -1,9 +1,8 @@
 " ==============================================================
-" File:         view.vim
+" File:         View.vim
 " Maintainer:   Joshua Potter <jrpotter@live.unc.edu>
 " License:      Apache License, Version 2.0
-" Description:  Viewport of lode hierarchy. This class also
-"               serves as the parentmost node. 
+" Description:  Shows the contents of the hierarchical model
 "
 " ==============================================================
 
@@ -12,52 +11,60 @@
 " ==============================================================
 if lodestar#guard('g:loaded_LodestarView') | finish | endif
 
-" Keep static members of g:LodestarNode
-let s:view = copy(g:LodestarNode)
-let g:LodestarView = s:view
+let s:View = copy(g:LodestarNode)
+let g:LodestarView = s:View
 
 
-" FUNCTION: New(title) {{{1 Constructor
+" FUNCTION: new(title) {{{1 Constructor
 " Expects name of the scratch buffer created
 " ==============================================================
-function! s:view.New(title)
-    let view = copy(self)
+function! s:View.new(title)
+    let View = copy(self)
 
-    " Required node values
-    let view.pos = 0
-    let view.isdir = 1
-    let view.limit = 0
-    let view.depth = -1
-    let view.links = []
-    let view.path = g:lodestar#lodes_path
+    " Node related members
+    let View.pos = 0
+    let View.links = []
+    let View.parent = {}
 
-    " Setup Window
-    exe "30vne " . a:title
+    let View.title = a:title
+    let View.path = g:lodestar#lodes_path
+    let View.isdir = isdirectory(View.path)
+
+    let View.depth = -1
+    let View.opened = 0
+    let View.unfolded = 0
+
+    " Initialize self/display
+    call View.create()
+    call View.toggle()
+    call View.drawHeader()
+    call View.drawBody()
+
+    return View
+endfunction 
+
+
+" FUNCTION: create() {{{1 Builds new window
+" ==============================================================
+function s:View.create()
+    exe "30vne " . self.title
     setlocal cursorline
     setlocal winfixwidth
     setlocal noswapfile
     setlocal buftype=nofile
 
-    " Set highlighting of characters
     syn match LodestarDepth "[|]"
-    syn match LodestarOperator "[-+~]"
+    syn match LodestarOperator "[-+~#]"
     hi LodestarDepth ctermfg=DarkBlue
     hi LodestarOperator ctermfg=DarkRed
     hi LodestarHeader ctermfg=LightGray
     hi CursorLine term=bold ctermfg=Green
-
-    " Draw screen
-    call view.Open()
-    call view.DrawHeader()
-    call view.DrawLinks()
-
-    return view
 endfunction
 
 
-" FUNCTION: DrawHeader() {{{1 Write header to top of buffer
+" FUNCTION: drawHeader() {{{1 Write header to top of buffer
 " ==============================================================
-function s:view.DrawHeader()
+function s:View.drawHeader()
     let header = [
         \ '------Lodestar Menu------',
         \ '=========================']
@@ -74,12 +81,12 @@ function s:view.DrawHeader()
 endfunction
 
 
-" FUNCTION: DrawLinks() {{{1 Write links from header down
+" FUNCTION: drawBody() {{{1 Write links from header down
 " ==============================================================
-function s:view.DrawLinks()
+function s:View.drawBody()
     let i = self.limit
     for link in self.links
-        call append(i, link.Display())
+        call append(i, link.screenName())
         let i = i + 1
     endfor
 

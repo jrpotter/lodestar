@@ -17,8 +17,10 @@ By default, the following keys are used:
 * `o`    - Same as `<CR>`
 * `v`    - Open node in a vertically split window
 * `h`    - Open node in a horizontally split window
+* `r`    - Refresh current directory
 * `l`    - Leave menu
 * `q`    - Quit menu
+* `?`    - Display help
 
 Lodes & the Manifest
 --------------------
@@ -32,14 +34,6 @@ alphabetically (unless categorized). The only mandatory piece of the manifest.
   "Title" = "AVL Tree"
 ```
 
-### Category
-
-Allows another layer of organizing lodes, grouping similar lodes together.
-
-```javascript
-  "Category" = "Tree/PriorityBased"
-```
-
 ### Links
 
 Marks the names of all links relative to the lode directory. Note this does not
@@ -47,26 +41,11 @@ mark which elements are shown- rather, it allows a pretty name. Files without
 a name default to the filename itself.
 
 ```javascript
-  "Links" = [
-      { "Python"  : "./avl.py"    },
-      { "Haskell" : "./avl.hs"    },
-      { "README"  : "./README.md" }
-  ]
-```
-
-### Foreign
-
-Denotes external references to be included within the node. For example, including
-"Wikipedia" will cause another node to be openable when viewing the tree. This node
-refers to the wikipedia article of the correspondingly titled lode.
-
-The following foreign scripts are currently supported:
-* Wikipedia (soon!)
-
-```javascript
-  "Foreign" = [
-      "Wikipedia" 
-  ]
+  "Links" = {
+      "Python"  : "./avl.py",
+      "Haskell" : "./avl.hs",
+      "README"  : "./README.md"
+  }
 ```
 
 ### Ignore

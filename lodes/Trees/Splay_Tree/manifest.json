@@ -1,3 +1,10 @@
 {
-    "Title" : "Splay Tree"
+    "Title" : "Splay Tree",
+    "Links" : {
+        "Python"  : "./splay.py",
+        "Java"    : "./splay.java",
+        "Haskell" : "./splay.hs",
+        "C++"     : "./splay.cpp",
+        "PHP"     : "./splay.php"
+    }
 }

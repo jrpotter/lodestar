@@ -25,22 +25,25 @@ endfunction
 " ==============================================================
 function lodestar#cut(path)
 python << endpython
+
 path = vim.eval('a:path')
 head, tail = os.path.split(path)
 vim.command("return '{}'".format(tail))
+
 endpython
 endfunction
 
 
-" FUNCTION: join(head, tail) {{{1 Join
+" FUNCTION: join(head, tail) {{{1 Join strings
 " ==============================================================
 function lodestar#join(head, tail)
 python << endpython
+
 head = vim.eval('a:head')
 tail = vim.eval('a:tail')
 path = os.path.join(head, tail)
-
 vim.command("return '{}'".format(path))
+
 endpython
 endfunction
 
@@ -65,7 +68,7 @@ function lodestar#__partition(list, left, right)
     let lesser = a:left
     call lodestar#swap(a:list, pivot_index, a:right)
     for i in range(a:left, a:right-1)
-        if a:list[i].Compare(pivot_value) <= 0
+        if a:list[i].compare(pivot_value) <= 0
             call lodestar#swap(a:list, i, lesser)
             let lesser = lesser + 1
         endif
