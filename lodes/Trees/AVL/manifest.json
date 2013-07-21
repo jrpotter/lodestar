@@ -1,9 +1,0 @@
-{
-    "Links" : {
-        "Python"  : "./avl.py",
-        "Java"    : "./avl.java",
-        "Haskell" : "./avl.hs",
-        "C++"     : "./avl.cpp",
-        "PHP"     : "./avl.php"
-    }
-}
