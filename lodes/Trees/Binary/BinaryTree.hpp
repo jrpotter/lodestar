@@ -1,12 +1,12 @@
-#ifndef AVL_HPP
-#define AVL_HPP
+#ifndef BINARY_TREE_HPP
+#define BINARY_TREE_HPP
 
 template<class K, class V>
-class AVL : public M_Tree<K, V>
+class BinaryTree
 {
     public:
-        AVL();
-        ~AVL();
+        BinaryTree();
+        ~BinaryTree();
 
         void remove(K);
         void insert(K, V);
@@ -21,7 +21,6 @@ class AVL : public M_Tree<K, V>
             K key; 
             V value;
             node *left, *right;
-            unsigned int height;
 
             node(K, V);
             ~node();
@@ -33,12 +32,6 @@ class AVL : public M_Tree<K, V>
         node* remove(K, node*);
         node* insert(K, V, node*);
         node* find(K, node*) const;
-
-        // Rotations
-        node* LL(node*);
-        node* LR(node*);
-        node* RR(node*);
-        node* RL(node*);
 };
 
 
@@ -49,7 +42,6 @@ BinaryTree<K, V>::node::node(K k, V v)
     , value(v)
     , left(nullptr)
     , right(nullptr)
-    , height(0)
 {}
 
 template<class K, class V>
@@ -60,33 +52,34 @@ BinaryTree<K, V>::node::~node()
 }
 
 
-// Constructor
+// Constructors
 template<class K, class V>
-AVL<K, V>::AVL()
+BinaryTree<K, V>::BinaryTree()
     : root(nullptr)
     , count(0)
-{}
+{} 
 
 template<class K, class V>
-AVL<K, V>::~AVL()
+BinaryTree<K, V>::~BinaryTree()
 { if(root) delete root; }
 
 
 // Modifiers
 template<class K, class V>
-void AVL<K, V>::remove(K key)
+void BinaryTree<K, V>::remove(K key)
 {
     count -= 1;
     root = remove(key, root);
 }
 
 template<class K, class V>
-void AVL<K, V>::remove(K key, node *n)
+class BinaryTree<K, V>::node* 
+BinaryTree<K, V>::remove(K key, node *n)
 {
     if(!n) return nullptr;
 
     if(n -> key == key){
-        
+
         // Has Children
         if(n -> left && n -> right){
             node *parent = n;
@@ -119,149 +112,56 @@ void AVL<K, V>::remove(K key, node *n)
                 parent -> left = nullptr;
             }
         } 
-
-        // Left Child
+        
+        // Left Child 
         else if(n -> left){
             node *tmp = n -> left;
             delete n;
             return tmp;
-        }
+        } 
 
         // Right Child
         else if(n -> right){
             node *tmp = n -> right;
             delete n;
             return tmp;
-        }
-
+        } 
+        
         // No Children
         else {
             delete n;
             return nullptr;
         }
-    }
-
-    if(n -> key < key){
+        
+    } else if(n -> key < key){
         n -> left = remove(key, n -> left);
     } else {
         n -> right = remove(key, n -> right);
     }
 
-    // Rebalancing
-    int l = n -> left ? n -> left -> height : -1;
-    int r = n -> right ? n -> right -> height : -1;
-    
-    n -> height = 1 + (l > r) ? l : r;
-
-    // Rotate
-    if(r - l > 1){
-        if(key < n -> right -> value) return RL(n);
-        else return RR(n);
-    } else if(l - r > 1){
-        if(key > n -> left -> value) return LR(n);
-        else return LL(n);
-    }
-
     return n;
 }
 
 template<class K, class V>
-void AVL<K, V>::insert(K key, V val)
+void BinaryTree<K, V>::insert(K key, V value)
 {
-    count += 1;  
-    root = insert(key, val, root);
+    count += 1;
+    root = insert(key, value, root);
 }
 
 template<class K, class V>
-class AVL<K, V>::node*
-AVL<K, V>::insert(K key, V val, node *n)
+class BinaryTree<K, V>::node*
+BinaryTree<K, V>::insert(K key, V value, node *n)
 {
-    if(!n) return new node(key);
+    if(!n) return new node(key, value);
 
-    // Insert until leaf is hit
-    if(key < n -> value) n -> left = insert(key, n -> left);
-    else if(key > n -> value) n -> right = insert(key, n -> right);
-
-    // Adjust heights
-    int l = n -> left ? n -> left -> height : -1;
-    int r = n -> right ? n -> right -> height : -1;
-    
-    n -> height = 1 + (l > r) ? l : r;
-
-    // Rotate
-    if(r - l > 1){
-        if(key < n -> right -> value) return RL(n);
-        else return RR(n);
-    } else if(l - r > 1){
-        if(key > n -> left -> value) return LR(n);
-        else return LL(n);
+    if(n -> key < key){
+        n -> left = insert(key, value, n -> left);
+    } else {
+        n -> right = insert(key, value, n -> right);
     }
 
     return n;
-}
-
-
-// AVL Rotation Methods
-template<class K, class V>
-class AVL<K, V>::node*
-AVL<K, V>::LL(node *n)
-{
-    node *B = n -> left;
-
-    n -> left = B -> right;
-    B -> right = n;
-
-    n -> height -= 1;
-
-    return B;
-}
-
-template<class K, class V>
-class AVL<K, V>::node*
-AVL<K, V>::LR(node *n)
-{
-    node *B = n -> left;
-    node *C = B -> right;
-
-    B -> right = C -> left;
-    C -> left = B;
-    n -> left = C;
-
-    B -> height -= 1;
-    C -> height += 1;
-
-    return LL(n);
-}
-
-template<class K, class V>
-class AVL<K, V>::node*
-AVL<K, V>::RR(node *n)
-{
-    node *B = n -> right;
-    
-    n -> right = B -> left;
-    B -> left = n;
-
-    n -> height -= 1;
-
-    return B;
-}
-
-template<class K, class V>
-class AVL<K, V>::node*
-AVL<K, V>::RL(node *n)
-{
-    node *B = n -> right;
-    node *C = B -> left;
-
-    B -> left = C -> right;
-    C -> right = B;
-    n -> right = C;
-
-    B -> height -= 1;
-    C -> height += 1;
-
-    return RR(n);
 }
 
 
@@ -320,4 +220,4 @@ unsigned int BinaryTree<K, V>::size() const
     return count;
 }
 
-#endif /* AVL_HPP */
+#endif /* BINARY_TREE_HPP */

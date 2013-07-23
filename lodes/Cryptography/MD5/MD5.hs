@@ -14,7 +14,7 @@ toString :: B.ByteString -> String
 toString b = map (toEnum . fromEnum) (B.unpack b)
 
 toWord8 :: Int64 -> [Word8]
-toWord8 = map (fromIntegral . transform) [0, 8..56]
+toWord8 n = map (fromIntegral . transform) [0, 8..56]
     where mask = (.&.) 0xFF000000
           transform x = rotate (mask $ shift n x) 8
 
@@ -31,7 +31,7 @@ pad s = let b = B.snoc (toByteString s) 1
             l = 8 * B.length b
             r = 448 + 512 * (l `quot` 448) - l
             m = B.append b (B.take (r `quot` 8) (B.repeat 0))
-        in B.append m (B.pack . toBinary8 $ l - 8)
+        in B.append m (B.pack . toWord8 $ l - 8)
 
 -- Functions for futher processing after padding
 proc :: Int -> Word32 -> Word32 -> Word32 -> Word32
@@ -49,16 +49,16 @@ index n
     | n <= 47 = (3 * n + 5) `mod` 16
     | otherwise = (7 * n) `mod` 16
 
--- Round function
-round :: [Word32] -> Int -> Int -> Int -> Word32
-round (a:b:c:d:[]) k s i = b + ((a + (proc i b c d) + (X !! k) + (T !! i)) `rotateL` s)
+-- Rotations
+rotations :: [Word32]
+rotations = concat $ replicate 4 =<< [[7, 12, 17, 22], [5, 9, 14, 20]
+                                     ,[4, 11, 16, 23], [6, 10, 15, 21]]
 
-rotations :: [7, 12, 17, 22] ++ [5, 9, 14, 20] ++ [4, 11, 16, 23] ++ [6, 10, 15, 21]
-
--- Constants
+-- Other Constants
 table = [x | y <- [1..64], let x = floor $ (abs . sin) y * 2^32]
 words = [0x01234567, 0x89abcdef, 0xfedcba98, 0x76543210] :: [Word32]
 
+-- Main Digestion Algorithm
 
 -- Return hex string representation of 128-bit digest
 --md5 :: String -> String
