@@ -1,6 +1,8 @@
 Lodestar Plugin
 ===============
 
+[Version 1.0.0 - 10/28/2013]
+
 Lodestar is a quickly accessable vim plugin conceptualized to contain computer science-related
 content such as data structures, algorithms, etc (though this is not strictly necessary). 
 
