@@ -1,0 +1,8 @@
+{
+    "Title" : "Linked List",
+    "Links" : {
+        "Assembly" : "ll.s",
+        "C"        : "ll.c",
+        "C++"      : "ll.hpp"
+    }
+}

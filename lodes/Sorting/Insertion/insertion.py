@@ -1,13 +1,9 @@
-def insertion_sort(values):
-    for i in range(len(values)):
-        tmp = values[i]
+def insertion(values):
+    for i in range(1, len(values)):
         for j in range(i-1, -1, -1):
-            if values[j] <= tmp:
+            if values[j+1] < values[j]:
+                tmp = values[j]
+                values[j] = values[j+1]
                 values[j+1] = tmp
-                break
-            values[j+1] = values[j]
-        else:
-            values[0] = tmp
 
     return values
-                

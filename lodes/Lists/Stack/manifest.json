@@ -1,0 +1,7 @@
+{
+    "Title" : "Stack",
+    "Links" : {
+        "Assembly" : "stack.s",
+        "C"        : "stack.c"
+    }
+}
