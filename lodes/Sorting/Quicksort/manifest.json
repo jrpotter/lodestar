@@ -1,6 +1,8 @@
 {
     "Links" : {
-        "Python"  : "qs.py",
-        "Haskell" : "qs.hs"
+        "Assembly" : "qs.s",
+        "C"        : "qs.c",
+        "Python"   : "qs.py",
+        "Haskell"  : "qs.hs"
     }
 }
