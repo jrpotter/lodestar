@@ -1,5 +1,5 @@
 {
-    "Title" : "Counting Sort",
+    "Title" : "Counting",
     "Links" : {
         "Assembly" : "counting.s",
         "C"        : "counting.c"
