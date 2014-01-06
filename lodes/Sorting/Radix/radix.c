@@ -1,3 +1,6 @@
+#ifndef RADIX_C
+#define RADIX_C
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -41,3 +44,5 @@ void radix(int* values, int length, int d)
         free(C);
     }
 }
+
+#endif

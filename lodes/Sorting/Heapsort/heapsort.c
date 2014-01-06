@@ -1,3 +1,6 @@
+#ifndef HEAPSORT_C
+#define HEAPSORT_C
+
 void heapify(int* values, int size, int index)
 {
     int l = (index << 1) + 1;
@@ -33,3 +36,5 @@ void heapsort(int* values, int size)
         heapify(values, len, 0);
     }
 }
+
+#endif

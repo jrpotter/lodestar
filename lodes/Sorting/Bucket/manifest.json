@@ -1,0 +1,7 @@
+{
+    "Title" : "Bucket",
+    "Links" : {
+        "Assembly" : "bucket.s",
+        "C"        : "bucket.c"
+    }
+}

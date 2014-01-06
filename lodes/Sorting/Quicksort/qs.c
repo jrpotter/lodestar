@@ -1,3 +1,6 @@
+#ifndef QS_C
+#define QS_C
+
 void swap(int* values, int i, int j)
 {
     int tmp = values[i];
@@ -21,3 +24,5 @@ void quicksort(int* values, int l, int r)
     quicksort(values, l, j - 1);
     quicksort(values, j + 1, r);
 }
+
+#endif

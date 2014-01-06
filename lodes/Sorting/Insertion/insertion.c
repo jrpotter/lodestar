@@ -1,3 +1,6 @@
+#ifndef INSERTION_C
+#define INSERTION_C
+
 void insertion(int *values, int length)
 {
     for(int i = 1; i < length; i++) {
@@ -10,3 +13,5 @@ void insertion(int *values, int length)
         }
     }
 };
+
+#endif
