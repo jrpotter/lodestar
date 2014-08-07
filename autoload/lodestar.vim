@@ -9,9 +9,9 @@
 
 " VARIABLE: lodes_path {{{1 Path of references
 " ==============================================================
-let lodestar#lodes_path = expand('~/.vim/lodes')
 let lodestar#user_agent = 'jrpotter@live.unc.edu'
-let lodestar#wiki_cache = expand('~/.vim/lodes/.wiki_cache')
+let lodestar#lodes_path = expand('<sfile>:p:h') . '/../lodes'
+let lodestar#wiki_cache = lodestar#lodes_path . '/.wiki_cache'
 
 
 " FUNCTION: header_guard(name) {{{1 Ensures only single include
