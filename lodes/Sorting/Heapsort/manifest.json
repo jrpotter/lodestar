@@ -1,5 +1,7 @@
 {
     "Links" : {
-        "Python" : "heapsort.py" 
+        "Assembly" : "heapsort.s",
+        "C" : "heapsort.c",
+        "C++" : "heapsort.hpp" 
     }
 }

@@ -2,6 +2,7 @@
     "Title" : "Stack",
     "Links" : {
         "Assembly" : "stack.s",
-        "C"        : "stack.c"
+        "C"        : "stack.c",
+        "C++"      : "stack.hpp"
     }
 }

@@ -2,6 +2,7 @@
     "Links" : {
         "Assembly" : "qs.s",
         "C"        : "qs.c",
+        "C++"      : "qs.cpp",
         "Python"   : "qs.py",
         "Haskell"  : "qs.hs"
     }

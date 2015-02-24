@@ -2,6 +2,7 @@
     "Title" : "Bucket",
     "Links" : {
         "Assembly" : "bucket.s",
-        "C"        : "bucket.c"
+        "C"        : "bucket.c",
+        "C++"      : "bucket.hpp"
     }
 }

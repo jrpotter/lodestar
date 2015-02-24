@@ -2,6 +2,7 @@
     "Title" : "Radix",
     "Links" : {
         "Assembly" : "radix.s",
-        "C"        : "radix.c"
+        "C"        : "radix.c",
+        "C++"      : "radix.hpp"
     }
 }

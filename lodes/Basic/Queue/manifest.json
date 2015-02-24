@@ -2,6 +2,7 @@
     "Title" : "Queue",
     "Links" : {
         "Assembly" : "queue.s",
-        "C"        : "queue.c"
+        "C"        : "queue.c",
+        "C++"      : "queue.hpp"
     }
 }

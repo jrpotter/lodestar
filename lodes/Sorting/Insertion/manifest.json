@@ -1,0 +1,7 @@
+{
+    "Links" : {
+        "Assembly" : "insertion.s",
+        "C" : "insertion.c",
+        "C++" : "insertion.hpp" 
+    }
+}
